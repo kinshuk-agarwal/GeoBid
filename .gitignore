@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Generated synthetic data
+backend/data/generated/
+backend/data/tile_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Env / editor
+.env
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,15 @@
+"""Time helpers. GeoBid stores and returns all timestamps in UTC."""
+
+from datetime import datetime, timezone
+
+
+def utcnow() -> datetime:
+    """Current UTC time as a timezone-aware datetime."""
+    return datetime.now(timezone.utc)
+
+
+def ensure_utc(value: datetime) -> datetime:
+    """Treat naive datetimes as UTC; convert aware ones to UTC."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)

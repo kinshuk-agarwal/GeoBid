@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-high: #dc2626;
+  --color-high-soft: #fee2e2;
+  --color-medium: #eab308;
+  --color-medium-soft: #fef9c3;
+  --color-low: #16a34a;
+  --color-low-soft: #dcfce7;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+  font-feature-settings: 'cv11', 'tnum';
+}
+
+/* Brief highlight when a bid arrives live */
+@keyframes gb-flash {
+  from {
+    background-color: #a7f3d0;
+  }
+}
+.gb-flash {
+  animation: gb-flash 1.4s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-flash {
+    animation: none;
+  }
+}
+
+/* Leaflet tweaks to fit the app's visual language */
+.leaflet-container {
+  font-family: inherit;
+  background: #eef1f5;
+}
+.gb-basemap {
+  filter: grayscale(0.9) contrast(0.92) brightness(1.04);
+}
+.leaflet-tooltip.gb-tooltip {
+  @apply rounded-md border-0 bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg;
+}
+.leaflet-tooltip.gb-tooltip::before {
+  display: none;
+}
+.leaflet-control-attribution {
+  @apply text-[10px];
+}
+.leaflet-bar a {
+  @apply text-slate-700;
+}

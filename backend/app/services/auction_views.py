@@ -118,8 +118,6 @@ def to_auction_out(
             footfall_score=pole.footfall_score,
             visibility_score=pole.visibility_score,
             category=pole.category,
-            owner_id=pole.owner_id,
-            owner_name=pole.owner.name if pole.owner else None,
         ),
         inventory_slot_id=slot.id,
         slot_status=slot.status,

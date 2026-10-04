@@ -57,8 +57,6 @@ class AuctionPole(BaseModel):
     footfall_score: int
     visibility_score: int
     category: FootfallCategory
-    owner_id: int | None
-    owner_name: str | None
 
 
 class WinnerOut(BaseModel):

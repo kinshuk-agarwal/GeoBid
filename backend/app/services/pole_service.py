@@ -16,8 +16,6 @@ from app.models import (
     PoleStatus,
     Road,
     SlotStatus,
-    User,
-    UserRole,
 )
 from app.schemas.pole import PoleCreate, PoleOut, PoleUpdate, RoadOut
 from app.services import footfall_service
@@ -31,7 +29,6 @@ class PoleFilters:
     min_footfall: int | None = None
     min_score: int | None = None
     road_id: int | None = None
-    owner_id: int | None = None
     include_inactive: bool = False
 
 
@@ -43,8 +40,6 @@ def to_pole_out(pole: Pole, ranks: dict[int, PoleRank], distance_km: float | Non
         name=pole.name,
         road_id=pole.road_id,
         road_name=pole.road.name if pole.road else None,
-        owner_id=pole.owner_id,
-        owner_name=pole.owner.name if pole.owner else None,
         latitude=pole.latitude,
         longitude=pole.longitude,
         footfall=pole.footfall,
@@ -62,7 +57,7 @@ def to_pole_out(pole: Pole, ranks: dict[int, PoleRank], distance_km: float | Non
 
 
 def _pole_query():
-    return select(Pole).options(selectinload(Pole.road), selectinload(Pole.owner))
+    return select(Pole).options(selectinload(Pole.road))
 
 
 def list_poles(db: Session, f: PoleFilters) -> list[Pole]:
@@ -77,8 +72,6 @@ def list_poles(db: Session, f: PoleFilters) -> list[Pole]:
         q = q.where(Pole.footfall_score >= f.min_score)
     if f.road_id is not None:
         q = q.where(Pole.road_id == f.road_id)
-    if f.owner_id is not None:
-        q = q.where(Pole.owner_id == f.owner_id)
     return list(db.scalars(q.order_by(Pole.footfall.desc(), Pole.code)))
 
 
@@ -109,25 +102,20 @@ def list_roads(db: Session) -> list[RoadOut]:
     ]
 
 
-def _validate_refs(db: Session, road_id: int | None, owner_id: int | None) -> None:
+def _validate_road(db: Session, road_id: int | None) -> None:
     if road_id is not None and db.get(Road, road_id) is None:
         raise NotFoundError(f"Road {road_id} not found")
-    if owner_id is not None:
-        owner = db.get(User, owner_id)
-        if owner is None or owner.role != UserRole.OWNER:
-            raise BusinessRuleError(f"User {owner_id} is not a pole owner")
 
 
 def create_pole(db: Session, data: PoleCreate) -> Pole:
     if db.scalar(select(Pole).where(Pole.code == data.code)):
         raise ConflictError(f"Pole code {data.code} already exists")
-    _validate_refs(db, data.road_id, data.owner_id)
+    _validate_road(db, data.road_id)
 
     pole = Pole(
         code=data.code,
         name=data.name,
         road_id=data.road_id,
-        owner_id=data.owner_id,
         latitude=data.latitude,
         longitude=data.longitude,
     )
@@ -158,7 +146,7 @@ def create_pole(db: Session, data: PoleCreate) -> Pole:
 def update_pole(db: Session, ident: str | int, data: PoleUpdate) -> Pole:
     pole = get_pole(db, ident)
     changes = data.model_dump(exclude_unset=True)
-    _validate_refs(db, changes.get("road_id"), changes.get("owner_id"))
+    _validate_road(db, changes.get("road_id"))
 
     footfall_fields = {"footfall", "footfall_score", "visibility_score"}
     for key, value in changes.items():

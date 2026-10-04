@@ -33,8 +33,6 @@ DEMO_PASSWORD = "geobid123"
 
 DEMO_USERS: list[tuple[str, str, UserRole]] = [
     ("GeoBid Admin", "admin@geobid.local", UserRole.ADMIN),
-    ("Kondapur Media Pvt Ltd", "owner1@geobid.local", UserRole.OWNER),
-    ("HITEC Outdoor Networks", "owner2@geobid.local", UserRole.OWNER),
     ("Aurora Coffee", "advertiser1@geobid.local", UserRole.ADVERTISER),
     ("Nimbus Mobile", "advertiser2@geobid.local", UserRole.ADVERTISER),
     ("Zenith Realty", "advertiser3@geobid.local", UserRole.ADVERTISER),
@@ -56,8 +54,8 @@ def seed_users(db: Session) -> list[User]:
     return users
 
 
-def seed_geography(db: Session, data_dir: Path, owners: list[User]) -> tuple[int, int]:
-    """Insert roads and poles. Roads are split between owners alternately."""
+def seed_geography(db: Session, data_dir: Path) -> tuple[int, int]:
+    """Insert roads and poles."""
     roads, poles = read_geography(data_dir)
     road_by_name: dict[str, Road] = {}
     for r in roads:
@@ -72,14 +70,12 @@ def seed_geography(db: Session, data_dir: Path, owners: list[User]) -> tuple[int
         road_by_name[r.name] = road
     db.flush()
 
-    owner_by_road = {name: owners[i % len(owners)] for i, name in enumerate(road_by_name)}
     for p in poles:
         db.add(
             Pole(
                 code=p.code,
                 name=p.name,
                 road_id=road_by_name[p.road].id,
-                owner_id=owner_by_road[p.road].id,
                 latitude=p.latitude,
                 longitude=p.longitude,
             )
@@ -98,8 +94,7 @@ def seed_all(
     users = seed_users(db)
     summary = {"users": len(users), "roads": 0, "poles": 0, "slots": 0, "live": 0, "completed": 0}
     if db.scalar(select(func.count(Pole.id))) == 0:
-        owners = [u for u in users if u.role == UserRole.OWNER]
-        summary["roads"], summary["poles"] = seed_geography(db, data_dir, owners)
+        summary["roads"], summary["poles"] = seed_geography(db, data_dir)
         footfall_service.refresh_from_provider(db, get_footfall_provider())
         summary["slots"] = ensure_upcoming_inventory(db)
         if demo_auctions:

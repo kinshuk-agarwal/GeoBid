@@ -7,3 +7,11 @@ export function Spinner({ className = 'size-4' }: { className?: string }) {
     />
   )
 }
+
+export function PageSpinner() {
+  return (
+    <div className="flex justify-center p-10">
+      <Spinner className="size-6" />
+    </div>
+  )
+}

@@ -4,7 +4,6 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    OWNER = "OWNER"
     ADVERTISER = "ADVERTISER"
     ADMIN = "ADMIN"
 

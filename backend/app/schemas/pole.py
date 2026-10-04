@@ -23,8 +23,6 @@ class PoleOut(BaseModel):
     name: str
     road_id: int | None
     road_name: str | None
-    owner_id: int | None
-    owner_name: str | None
     latitude: float
     longitude: float
     footfall: int
@@ -45,7 +43,6 @@ class PoleCreate(BaseModel):
     code: str = Field(pattern=r"^P\d{3,}$", examples=["P101"])
     name: str = Field(min_length=2, max_length=160)
     road_id: int | None = None
-    owner_id: int | None = None
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
     # Optional manual footfall (source "manual"); otherwise the configured
@@ -58,7 +55,6 @@ class PoleCreate(BaseModel):
 class PoleUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=160)
     road_id: int | None = None
-    owner_id: int | None = None
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     status: PoleStatus | None = None

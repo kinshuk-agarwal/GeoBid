@@ -21,4 +21,3 @@ class User(Base):
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
-    poles: Mapped[list["Pole"]] = relationship(back_populates="owner")  # noqa: F821

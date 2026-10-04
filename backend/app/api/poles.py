@@ -23,10 +23,9 @@ def list_poles(
     min_footfall: Annotated[int | None, Query(ge=0)] = None,
     min_score: Annotated[int | None, Query(ge=0, le=100)] = None,
     road_id: int | None = None,
-    owner_id: int | None = None,
     include_inactive: bool = False,
 ) -> list[PoleOut]:
-    filters = PoleFilters(category, min_footfall, min_score, road_id, owner_id, include_inactive)
+    filters = PoleFilters(category, min_footfall, min_score, road_id, include_inactive)
     ranks = footfall_service.compute_rankings(db)
     return [pole_service.to_pole_out(p, ranks) for p in pole_service.list_poles(db, filters)]
 

@@ -23,7 +23,9 @@ import { PoleMap, radiusBounds, type FocusRequest, type FocusTarget } from '@/co
 import { RadiusSelector } from '@/components/map/RadiusSelector'
 import { TopPoles } from '@/components/map/TopPoles'
 import { BiddingGuide } from '@/components/pole/BiddingGuide'
+import { PoleAnalysis } from '@/components/pole/PoleAnalysis'
 import { PoleDetails } from '@/components/pole/PoleDetails'
+import { useAuth } from '@/hooks/useAuth'
 import { useMapData } from '@/hooks/useMapData'
 import type { FootfallCategory, LatLng, Pole } from '@/types'
 import { haversineKm } from '@/utils/geo'
@@ -44,6 +46,9 @@ export function MapPage() {
   const radiusParam = Number(params.get('radius'))
   const radius = RADIUS_OPTIONS.includes(radiusParam) ? radiusParam : DEFAULT_RADIUS_KM
   const selectedCode = params.get('pole')
+  const { user } = useAuth()
+  // Admins don't bid: a pole opens its analysis and auction controls instead.
+  const analyst = user?.role === 'ADMIN'
 
   const { data, loading, error, reload } = useMapData(center.latitude, center.longitude, radius)
   const [allPoles, setAllPoles] = useState<Pole[]>([])
@@ -232,12 +237,14 @@ export function MapPage() {
             </div>
           </div>
 
+          {!analyst && (
           <button
             onClick={() => setGuideOpen(true)}
             className="absolute right-3 top-3 z-[1000] hidden items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-medium shadow-md ring-1 ring-slate-200 hover:bg-slate-50 sm:inline-flex xl:hidden"
           >
             <Gavel className="size-4" /> How to bid
           </button>
+          )}
 
           <div className="absolute bottom-6 left-3 z-[1000]">
             <MapLegend counts={counts} hidden={hidden} onToggle={toggleCategory} />
@@ -278,7 +285,7 @@ export function MapPage() {
           className={`${panelOpen ? 'flex' : 'hidden'} absolute inset-y-0 right-0 z-[1050] w-full flex-col border-l border-slate-200 bg-white shadow-xl sm:w-[400px] xl:relative xl:z-auto xl:shadow-none ${
             rightOpen ? 'xl:flex' : 'xl:hidden'
           }`}
-          aria-label={selectedPole ? `Pole ${selectedPole.code} details` : 'How bidding works'}
+          aria-label={selectedPole ? `Pole ${selectedPole.code} details` : analyst ? 'Pole analysis' : 'How bidding works'}
         >
           <button
             onClick={() => setRightOpen(false)}
@@ -290,7 +297,16 @@ export function MapPage() {
           </button>
           <div className="flex-1 overflow-y-auto p-5 xl:pt-9">
             {selectedPole ? (
-              <PoleDetails key={selectedPole.code} pole={selectedPole} totalPoles={totalPoles} onClose={closePanel} />
+              analyst ? (
+                <PoleAnalysis key={selectedPole.code} pole={selectedPole} totalPoles={totalPoles} onClose={closePanel} />
+              ) : (
+                <PoleDetails key={selectedPole.code} pole={selectedPole} totalPoles={totalPoles} onClose={closePanel} />
+              )
+            ) : analyst ? (
+              <div className="py-10 text-center text-sm text-slate-500">
+                <p className="font-medium text-slate-700">Pole analysis</p>
+                <p className="mt-1">Select a pole on the map to see its status and performance and to run its auctions.</p>
+              </div>
             ) : (
               <div className="relative">
                 <button

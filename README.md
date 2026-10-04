@@ -7,7 +7,7 @@ bid for daily advertising shifts in live auctions.
 > **All footfall values are synthetic.** They simulate the output of an
 > upstream footfall model; GeoBid consumes them and does not compute footfall.
 
-_Status: Phase 7 + 4-seat rolling-ad auctions (qualifying → break → premium), footfall-priced 2-hour slots, 7-day bidding window, price trends. This README will be expanded as the
+_Status: Phase 8 (dashboards) + 4-seat rolling-ad auctions (qualifying → break → premium), footfall-priced 2-hour slots, 7-day bidding window, price trends. This README will be expanded as the
 remaining phases land._
 
 ## Backend quick start
@@ -97,7 +97,7 @@ HIGH, the next 40% MEDIUM, the rest LOW (`GEOBID_FOOTFALL_HIGH_SHARE`,
 |--------|------|------|
 | GET | `/api/map/poles?latitude=&longitude=&radius_km=` | public |
 | GET | `/api/map/poles/nearby?latitude=&longitude=&radius_km=&limit=` | public |
-| GET | `/api/poles` (filters: `category`, `min_footfall`, `min_score`, `road_id`, `owner_id`) | public |
+| GET | `/api/poles` (filters: `category`, `min_footfall`, `min_score`, `road_id`) | public |
 | GET | `/api/poles/{id or code}` | public |
 | POST/PUT/DELETE | `/api/poles[/{id or code}]` | admin |
 | GET | `/api/roads` | public |
@@ -109,6 +109,10 @@ HIGH, the next 40% MEDIUM, the rest LOW (`GEOBID_FOOTFALL_HIGH_SHARE`,
 | POST | `/api/inventory` | admin |
 | GET | `/api/tariff/config` | public |
 | GET | `/api/poles/{id or code}/price-trend?shift=&date=` | public |
+| GET | `/api/dashboard/poles/{code}/analysis` | admin |
+| GET | `/api/dashboard/advertiser` | advertiser |
+| GET | `/api/dashboard/opportunities` (filters: `date`, `shift`, `category`, `min_footfall`, `min_score`, `max_price`, `round`, `latitude`/`longitude`/`radius_km`) | public (adds your seat when signed in) |
+| GET | `/api/users?role=` | admin |
 | GET | `/api/poles/{id or code}/footfall-profile?date=` | public |
 | GET | `/api/auctions` (filters: `status`, `pole_id`, `date`, `shift`) | public |
 | GET | `/api/auctions/{id}` | public |
@@ -241,6 +245,23 @@ event bus (single ordered queue) → connection manager → every socket in that
 auction's room. The browser reconnects automatically and falls back to REST
 polling only while disconnected.
 
+## Dashboards
+
+There are two roles: **advertisers** bid, and the **GeoBid admin** runs the
+poles and auctions (there are no separate pole owners). Both start on the map.
+
+- **Admin:** clicking a pole opens its analysis and controls instead of the
+  bidding panel: status, slots on sale, revenue, seats sold, sell-through,
+  price vs base, then **Auction control** for each 2-hour slot over the next
+  7 days: *Open* a scheduled auction, move a live one to its next round
+  (*Close qualifying* → *Open premium* → *Close auction*), *End now*, or
+  *Create* one for a slot without an auction (two-click confirm). Below that
+  are a 30-day revenue chart and footfall/pricing per slot.
+- **Advertiser** (`/advertiser/dashboard`): seats held / at risk / won, total
+  spend; *My auctions* (the 50 closing soonest, with your seat and what you
+  must bid to keep or regain it); *Find inventory* with filters; seats won.
+  Bids open the same popup as the map.
+
 ## Deployment (Vercel + Render)
 
 The **frontend** is a static Vite app and runs on **Vercel**. The **backend**
@@ -273,8 +294,6 @@ Password for all: `geobid123`
 | Role       | Email                      |
 |------------|----------------------------|
 | Admin      | admin@geobid.local         |
-| Owner      | owner1@geobid.local        |
-| Owner      | owner2@geobid.local        |
 | Advertiser | advertiser1@geobid.local   |
 | Advertiser | advertiser2@geobid.local   |
 | Advertiser | advertiser3@geobid.local   |

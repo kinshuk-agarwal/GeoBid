@@ -113,10 +113,10 @@ def test_classification_empty():
 # --- database integration -------------------------------------------------------
 
 
-def test_seed_assigns_categories_and_owners(seeded):
+def test_seed_assigns_categories(seeded):
     poles = seeded.query(Pole).all()
     assert 40 <= len(poles) <= 80
-    assert all(p.owner_id is not None and p.road_id is not None for p in poles)
+    assert all(p.road_id is not None for p in poles)
     assert all(p.footfall_source == "synthetic" for p in poles)
     by_cat = {c: [p.footfall for p in poles if p.category == c] for c in FootfallCategory}
     assert min(by_cat[FootfallCategory.HIGH]) >= max(by_cat[FootfallCategory.MEDIUM])
@@ -239,10 +239,3 @@ def test_admin_create_without_footfall_uses_provider(client, seeded, auth_header
     res = client.post("/api/poles", json=payload, headers=admin)
     assert res.status_code == 422
     assert "provider has no reading" in res.json()["detail"]
-
-
-def test_assigning_non_owner_rejected(client, seeded, auth_headers, make_user):
-    admin = auth_headers("root@example.com", UserRole.ADMIN)
-    adv = make_user("notowner@example.com", UserRole.ADVERTISER)
-    res = client.put("/api/poles/P001", json={"owner_id": adv.id}, headers=admin)
-    assert res.status_code == 422

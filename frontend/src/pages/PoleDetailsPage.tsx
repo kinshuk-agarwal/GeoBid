@@ -5,11 +5,15 @@ import { Link, useParams } from 'react-router'
 import { polesApi } from '@/api'
 import { errorMessage } from '@/api/client'
 import { Spinner } from '@/components/common/Spinner'
+import { PoleAnalysis } from '@/components/pole/PoleAnalysis'
 import { PoleDetails } from '@/components/pole/PoleDetails'
+import { useAuth } from '@/hooks/useAuth'
 import type { Pole } from '@/types'
 
 export function PoleDetailsPage() {
   const { id = '' } = useParams()
+  const { user } = useAuth()
+  const analyst = user?.role === 'ADMIN'
   const [pole, setPole] = useState<Pole | null>(null)
   const [total, setTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
@@ -49,7 +53,11 @@ export function PoleDetailsPage() {
               <Spinner className="size-6" />
             </div>
           ) : (
-            <PoleDetails pole={pole} totalPoles={total} standalone />
+            analyst ? (
+              <PoleAnalysis pole={pole} totalPoles={total} standalone />
+            ) : (
+              <PoleDetails pole={pole} totalPoles={total} standalone />
+            )
           )}
         </div>
       </div>

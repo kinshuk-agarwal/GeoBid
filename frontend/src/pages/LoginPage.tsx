@@ -13,8 +13,6 @@ const DEMO_ACCOUNTS = [
   { email: 'advertiser3@geobid.local', name: 'Zenith Realty', role: 'Advertiser' },
   { email: 'advertiser4@geobid.local', name: 'Metro Mart', role: 'Advertiser' },
   { email: 'advertiser5@geobid.local', name: 'Swift Fitness', role: 'Advertiser' },
-  { email: 'owner1@geobid.local', name: 'Kondapur Media Pvt Ltd', role: 'Pole owner' },
-  { email: 'owner2@geobid.local', name: 'HITEC Outdoor Networks', role: 'Pole owner' },
   { email: 'admin@geobid.local', name: 'GeoBid Admin', role: 'Admin' },
 ]
 
@@ -22,21 +20,23 @@ export function LoginPage() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from ?? '/map'
+  // Return to where the user was headed; otherwise go to the role's home
+  // (advertisers and admins both start on the map).
+  const from = (location.state as { from?: string } | null)?.from
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  if (user) return <Navigate to={from} replace />
+  if (user) return <Navigate to={from ?? '/map'} replace />
 
   const signIn = async (e: string, p: string) => {
     setSubmitting(true)
     setError(null)
     try {
       await login(e, p)
-      navigate(from, { replace: true })
+      navigate(from ?? '/map', { replace: true })
     } catch (err) {
       setError(errorMessage(err, 'Sign-in failed'))
     } finally {

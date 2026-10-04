@@ -10,7 +10,7 @@
     by qualifying bids from advertisers 4 and 5, so advertiser 1 can take
     seat 4 with a premium bid;
   - day after tomorrow: qualifying round, advertiser 1 hasn't bid yet.
-* The last 7 days: completed auctions (owner revenue history).
+* The last 7 days: completed auctions (revenue history).
 
 Bids are generated with the same seat rules as live bidding (``seat_engine``)
 and written in one transaction, so a running backend's auction worker never

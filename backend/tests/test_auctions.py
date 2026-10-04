@@ -170,7 +170,7 @@ def test_base_price_and_roles(seeded, slot, adv, make_user):
     with pytest.raises(BusinessRuleError, match="base price"):
         bid(seeded, a, adv[0], a.reserve_price - 100)
     with pytest.raises(PermissionDeniedError):
-        bid(seeded, a, make_user("o@example.com", UserRole.OWNER), a.reserve_price)
+        bid(seeded, a, make_user("o@example.com", UserRole.ADMIN), a.reserve_price)
 
 
 def test_bidding_starts_at_footfall_priced_base(seeded, slot, adv):
@@ -370,5 +370,9 @@ def test_demo_seed(db, tmp_path, monkeypatch):
         .filter(InventorySlot.pole_id == pole.id, InventorySlot.date == shift_svc.tomorrow(), InventorySlot.shift == "S9")
         .one()
     )
-    assert tomorrow.round in (AuctionRound.BREAK, AuctionRound.PREMIUM) and len(tomorrow.confirmed_seats) == 2
+    # Tomorrow's qualifying round closes at 12:00 today, so its state depends on the clock.
+    if utcnow() >= tomorrow.qualifying_end_time:
+        assert tomorrow.round in (AuctionRound.BREAK, AuctionRound.PREMIUM) and len(tomorrow.confirmed_seats) == 2
+    else:
+        assert tomorrow.round == AuctionRound.QUALIFYING and not tomorrow.confirmed_seats
     assert db.query(WinningAdvertisement).count() > 0

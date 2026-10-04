@@ -67,5 +67,4 @@ def require_roles(*roles: UserRole) -> Callable[[User], User]:
 
 
 AdminUser = Annotated[User, Depends(require_roles(UserRole.ADMIN))]
-OwnerUser = Annotated[User, Depends(require_roles(UserRole.OWNER))]
 AdvertiserUser = Annotated[User, Depends(require_roles(UserRole.ADVERTISER))]

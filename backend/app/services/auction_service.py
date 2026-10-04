@@ -177,7 +177,7 @@ def seats_payload(seats: list[Seat]) -> list[dict]:
 def _auction_query():
     return select(Auction).options(
         selectinload(Auction.inventory_slot).selectinload(InventorySlot.pole).selectinload(Pole.road),
-        selectinload(Auction.inventory_slot).selectinload(InventorySlot.pole).selectinload(Pole.owner),
+        selectinload(Auction.inventory_slot).selectinload(InventorySlot.pole),
         selectinload(Auction.winners),
         selectinload(Auction.confirmed_seats),
     )
@@ -194,7 +194,6 @@ def get_auction(db: Session, auction_id: int) -> Auction:
 class AuctionFilters:
     status: AuctionStatus | None = None
     pole_id: int | None = None
-    owner_id: int | None = None
     day: date | None = None
     shift: str | None = None
     bidder_id: int | None = None  # auctions this advertiser has bid on
@@ -206,8 +205,6 @@ def list_auctions(db: Session, f: AuctionFilters) -> list[Auction]:
         q = q.where(Auction.status == f.status)
     if f.pole_id is not None:
         q = q.where(InventorySlot.pole_id == f.pole_id)
-    if f.owner_id is not None:
-        q = q.where(Pole.owner_id == f.owner_id)
     if f.day is not None:
         q = q.where(InventorySlot.date == f.day)
     if f.shift is not None:

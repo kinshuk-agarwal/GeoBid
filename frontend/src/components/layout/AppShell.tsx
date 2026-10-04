@@ -1,9 +1,11 @@
-import { LogIn, LogOut, MapPinned } from 'lucide-react'
+import { LayoutDashboard, LogIn, LogOut, MapPinned } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '@/hooks/useAuth'
 
-const ROLE_LABEL = { OWNER: 'Pole owner', ADVERTISER: 'Advertiser', ADMIN: 'Admin' } as const
+import { HOME_FOR } from './RequireRole'
+
+const ROLE_LABEL = { ADVERTISER: 'Advertiser', ADMIN: 'Admin' } as const
 
 function navClass({ isActive }: { isActive: boolean }) {
   return `inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -29,6 +31,12 @@ export function AppShell() {
             <MapPinned className="size-4" />
             Map
           </NavLink>
+          {user && HOME_FOR[user.role] !== '/map' && (
+            <NavLink to={HOME_FOR[user.role]} className={navClass}>
+              <LayoutDashboard className="size-4" />
+              Dashboard
+            </NavLink>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-3">

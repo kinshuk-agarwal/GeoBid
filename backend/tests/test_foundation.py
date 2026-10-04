@@ -82,9 +82,9 @@ def test_login_with_seeded_demo_domain(client, db):
     from scripts.seed_database import DEMO_PASSWORD, seed_users
 
     seed_users(db)
-    res = client.post("/api/auth/login", json={"email": "owner1@geobid.local", "password": DEMO_PASSWORD})
+    res = client.post("/api/auth/login", json={"email": "admin@geobid.local", "password": DEMO_PASSWORD})
     assert res.status_code == 200, res.text
-    assert res.json()["user"]["role"] == "OWNER"
+    assert res.json()["user"]["role"] == "ADMIN"
 
 
 def test_me_requires_valid_token(client):

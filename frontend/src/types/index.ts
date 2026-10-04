@@ -1,4 +1,4 @@
-export type Role = 'OWNER' | 'ADVERTISER' | 'ADMIN'
+export type Role = 'ADVERTISER' | 'ADMIN'
 export type FootfallCategory = 'HIGH' | 'MEDIUM' | 'LOW'
 export type PoleStatus = 'ACTIVE' | 'INACTIVE'
 
@@ -37,8 +37,6 @@ export interface Pole {
   name: string
   road_id: number | null
   road_name: string | null
-  owner_id: number | null
-  owner_name: string | null
   latitude: number
   longitude: number
   footfall: number
@@ -194,8 +192,6 @@ export interface Auction {
     footfall_score: number
     visibility_score: number
     category: FootfallCategory
-    owner_id: number | null
-    owner_name: string | null
   }
   inventory_slot_id: number
   slot_status: SlotStatus
@@ -262,4 +258,74 @@ export interface FootfallProfile {
   slots: { shift: string; label: string; demand: Demand; footfall: number; share: number }[]
   by_weekday: { weekday: string; total: number }[]
   source: string
+}
+
+// --- dashboards ---
+
+export interface AuctionRow {
+  id: number
+  pole_code: string
+  pole_name: string
+  category: FootfallCategory
+  date: string
+  shift: string
+  shift_label: string
+  status: AuctionStatus
+  round: AuctionRound | null
+  round_ends_at: string | null
+  base_price: number
+  top_bid: number | null
+  next_min_bid: number | null
+  seats_filled: number
+  seats_total: number
+  bid_count: number
+  slot_footfall: number | null
+  revenue: number
+  my_bid?: number | null
+  my_seat?: number | null
+  my_seat_status?: SeatStatus | null
+  my_min_bid?: number | null
+}
+
+export interface RevenuePoint {
+  date: string
+  revenue: number
+  seats: number
+}
+
+export interface PoleAnalysisData {
+  code: string
+  name: string
+  road_name: string | null
+  category: FootfallCategory
+  status: PoleStatus
+  footfall: number
+  footfall_score: number
+  visibility_score: number
+  open_slots: number
+  window_days: number
+  kpis: {
+    revenue_total: number
+    revenue_30d: number
+    seats_sold: number
+    avg_seat_price: number | null
+    sell_through: number
+    price_vs_base: number | null
+  }
+  revenue_by_day: RevenuePoint[]
+  slots: { shift: string; label: string; avg_footfall: number; base_price: number; avg_price: number | null; sell_through: number }[]
+}
+
+export interface AdvertiserDashboardData {
+  kpis: { seats_held: number; seats_at_risk: number; seats_won: number; total_spend: number; open_auctions: number }
+  my_auctions: AuctionRow[]
+  my_auctions_total: number
+  won: { auction_id: number; pole_code: string; date: string; shift_label: string; seat: number; amount: number }[]
+}
+
+export interface UserBrief {
+  id: number
+  name: string
+  email: string
+  role: Role
 }

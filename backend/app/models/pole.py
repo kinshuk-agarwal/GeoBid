@@ -39,9 +39,6 @@ class Pole(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(160))
-    owner_id: Mapped[int | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), index=True
-    )
     road_id: Mapped[int | None] = mapped_column(
         ForeignKey("roads.id", ondelete="SET NULL"), index=True
     )
@@ -64,7 +61,6 @@ class Pole(Base):
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
-    owner: Mapped["User | None"] = relationship(back_populates="poles")  # noqa: F821
     road: Mapped[Road | None] = relationship(back_populates="poles")
     inventory_slots: Mapped[list["InventorySlot"]] = relationship(  # noqa: F821
         back_populates="pole", cascade="all, delete-orphan", passive_deletes=True

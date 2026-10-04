@@ -9,8 +9,8 @@ class RegisterRequest(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    # Admin accounts cannot be self-registered.
-    role: Literal["OWNER", "ADVERTISER"] = "ADVERTISER"
+    # Only advertisers can self-register; admin accounts are seeded.
+    role: Literal["ADVERTISER"] = "ADVERTISER"
 
 
 class LoginRequest(BaseModel):

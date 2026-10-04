@@ -329,3 +329,46 @@ export interface UserBrief {
   email: string
   role: Role
 }
+
+/** GET /tariff/config: the pricing formula's inputs and the auction rules. */
+export interface TariffConfig {
+  base_rate: number
+  footfall_weight: number
+  visibility_weight: number
+  pole_multiplier_min: number
+  pole_multiplier_max: number
+  rounding: number
+  slot_footfall_exponent: number
+  slot_multiplier_min: number
+  slot_multiplier_max: number
+  auction: {
+    seats_per_slot: number
+    confirmed_seats: number
+    min_increment: number
+    premium_floor_multiplier: number
+    qualifying_close_time: string
+    premium_round_start_time: string
+    premium_close_before_slot_minutes: number
+  }
+}
+
+export type BidOutcome = 'WON' | 'HOLDING' | 'OUTBID' | 'RAISED' | 'LOST' | 'CANCELLED'
+
+export interface BidHistoryRow {
+  bid_id: number
+  placed_at: string
+  auction_id: number
+  pole_code: string
+  category: FootfallCategory
+  date: string
+  shift_label: string
+  amount: number
+  round: 'QUALIFYING' | 'PREMIUM'
+  outcome: BidOutcome
+  seat: number | null
+}
+
+export interface BidHistoryPage {
+  items: BidHistoryRow[]
+  total: number
+}

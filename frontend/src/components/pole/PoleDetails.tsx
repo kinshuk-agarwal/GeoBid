@@ -1,4 +1,4 @@
-import { AlertTriangle, Maximize2, RotateCw, X } from 'lucide-react'
+import { AlertTriangle, BookOpen, Maximize2, RotateCw, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -10,7 +10,7 @@ import { DEMAND } from '@/utils/inventory'
 
 import { BidModal } from '../auction/BidModal'
 import { CategoryBadge } from '../common/CategoryBadge'
-import { SyntheticNotice } from '../common/SyntheticNotice'
+import { BiddingGuideModal } from './BiddingGuide'
 import { PriceTrendPanel } from './PriceTrendPanel'
 import { SlotFootfallChart } from './SlotFootfallChart'
 import { SlotList } from './SlotList'
@@ -74,6 +74,7 @@ export function PoleDetails({ pole, totalPoles, onClose, standalone = false }: P
   const [reloadKey, setReloadKey] = useState(0)
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null)
   const [bidAuctionId, setBidAuctionId] = useState<number | null>(null)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   useEffect(() => {
     const ctrl = new AbortController()
@@ -207,9 +208,16 @@ export function PoleDetails({ pole, totalPoles, onClose, standalone = false }: P
         />
       )}
 
-      <SyntheticNotice compact />
+      <button
+        onClick={() => setGuideOpen(true)}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-sky-700 underline-offset-2 hover:underline"
+      >
+        <BookOpen className="size-4" /> How bidding works: price formulas and rounds
+      </button>
+
 
       {bidAuctionId !== null && <BidModal auctionId={bidAuctionId} onClose={closeBid} />}
+      {guideOpen && <BiddingGuideModal onClose={() => setGuideOpen(false)} />}
     </div>
   )
 }

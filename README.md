@@ -111,6 +111,7 @@ HIGH, the next 40% MEDIUM, the rest LOW (`GEOBID_FOOTFALL_HIGH_SHARE`,
 | GET | `/api/poles/{id or code}/price-trend?shift=&date=` | public |
 | GET | `/api/dashboard/poles/{code}/analysis` | admin |
 | GET | `/api/dashboard/advertiser` | advertiser |
+| GET | `/api/dashboard/advertiser/bids?limit=&offset=` (your bids, newest first, with outcome) | advertiser |
 | GET | `/api/dashboard/opportunities` (filters: `date`, `shift`, `category`, `min_footfall`, `min_score`, `max_price`, `round`, `latitude`/`longitude`/`radius_km`) | public (adds your seat when signed in) |
 | GET | `/api/users?role=` | admin |
 | GET | `/api/poles/{id or code}/footfall-profile?date=` | public |
@@ -259,7 +260,7 @@ poles and auctions (there are no separate pole owners). Both start on the map.
   are a 30-day revenue chart and footfall/pricing per slot.
 - **Advertiser** (`/advertiser/dashboard`): seats held / at risk / won, total
   spend; *My auctions* (the 50 closing soonest, with your seat and what you
-  must bid to keep or regain it); *Find inventory* with filters; seats won.
+  must bid to keep or regain it); *Find inventory* with filters; seats won; *My bid history* (every bid with its result: holding a seat, outbid, raised, won, not won).
   Bids open the same popup as the map.
 
 ## Deployment (Vercel + Render)

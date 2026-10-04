@@ -1,7 +1,9 @@
 import type {
   AdvertiserDashboardData,
   AuctionRow,
+  BidHistoryPage,
   PoleAnalysisData,
+  TariffConfig,
 } from '@/types'
 import type { Auction, Bid, FootfallProfile, MapResponse, Pole, PoleInventory, PriceTrend, PublicConfig, TokenResponse, User } from '@/types'
 
@@ -15,6 +17,7 @@ export const authApi = {
 
 export const configApi = {
   get: () => api.get<PublicConfig>('/config').then((r) => r.data),
+  tariff: () => api.get<TariffConfig>('/tariff/config').then((r) => r.data),
 }
 
 export interface MapQuery {
@@ -73,6 +76,8 @@ export interface OpportunityQuery {
 export const dashboardApi = {
   poleAnalysis: (code: string) => api.get<PoleAnalysisData>(`/dashboard/poles/${code}/analysis`).then((r) => r.data),
   advertiser: () => api.get<AdvertiserDashboardData>('/dashboard/advertiser').then((r) => r.data),
+  myBids: (limit = 25, offset = 0) =>
+    api.get<BidHistoryPage>('/dashboard/advertiser/bids', { params: { limit, offset } }).then((r) => r.data),
   opportunities: (q: OpportunityQuery) => api.get<AuctionRow[]>('/dashboard/opportunities', { params: q }).then((r) => r.data),
 }
 

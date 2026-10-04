@@ -9,7 +9,6 @@ import type { Pole, PoleAnalysisData } from '@/types'
 import { footfallRange, formatINR, formatNumber } from '@/utils/format'
 
 import { CategoryBadge } from '../common/CategoryBadge'
-import { SyntheticNotice } from '../common/SyntheticNotice'
 import { AuctionControls } from './AuctionControls'
 
 interface Props {
@@ -164,7 +163,6 @@ export function PoleAnalysis({ pole, totalPoles, onClose, standalone = false }: 
         </>
       )}
 
-      <SyntheticNotice compact />
     </div>
   )
 }

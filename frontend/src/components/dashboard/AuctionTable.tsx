@@ -1,4 +1,4 @@
-import { useCountdown, formatDuration } from '@/hooks/useCountdown'
+import { formatCoarse, useCountdown } from '@/hooks/useCountdown'
 import type { AuctionRow } from '@/types'
 import { footfallRange, formatINR } from '@/utils/format'
 import { ROUND } from '@/utils/inventory'
@@ -17,9 +17,14 @@ export function RoundPill({ row }: { row: AuctionRow }) {
   return <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${r.className}`}>{r.label}</span>
 }
 
+/** Time left, rounded ("10 hrs+") and refreshed every 30 s: tables don't need a ticking clock. */
 export function EndsIn({ iso }: { iso: string | null }) {
-  const ms = useCountdown(iso)
-  return <span className="font-mono text-xs tabular-nums text-slate-600">{iso ? formatDuration(ms) : '—'}</span>
+  const ms = useCountdown(iso, 0, 30_000)
+  return (
+    <span className="whitespace-nowrap text-xs tabular-nums text-slate-600" title={iso ? new Date(iso).toLocaleString('en-IN') : undefined}>
+      {iso ? formatCoarse(ms) : '—'}
+    </span>
+  )
 }
 
 export function SeatsFilled({ row }: { row: AuctionRow }) {

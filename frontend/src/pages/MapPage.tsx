@@ -15,7 +15,6 @@ import { useSearchParams } from 'react-router'
 
 import { polesApi } from '@/api'
 import { Spinner } from '@/components/common/Spinner'
-import { SyntheticNotice } from '@/components/common/SyntheticNotice'
 import { AreaStats } from '@/components/map/AreaStats'
 import { LocationSearch, type SearchResult } from '@/components/map/LocationSearch'
 import { MapLegend } from '@/components/map/MapLegend'
@@ -85,7 +84,12 @@ export function MapPage() {
     focusOn({ kind: 'bounds', bounds: radiusBounds(lat, lng, radius) })
   }
 
+  // Both side panels can be collapsed to a slim rail (desktop widths).
+  const [leftOpen, setLeftOpen] = useState(true)
+  const [rightOpen, setRightOpen] = useState(true)
+
   const selectPole = (pole: Pole) => {
+    setRightOpen(true) // a collapsed details panel opens for the chosen pole
     // Recentre on the pole if it lies outside the current radius.
     const outside = haversineKm(center, pole) > radius
     updateParams({
@@ -134,9 +138,6 @@ export function MapPage() {
   const counts = data?.counts ?? {}
   const totalPoles = allPoles.length || data?.counts.total || 0
   const panelOpen = selectedPole !== null || guideOpen
-  // Both side panels can be collapsed to a slim rail (desktop widths).
-  const [leftOpen, setLeftOpen] = useState(true)
-  const [rightOpen, setRightOpen] = useState(true)
 
   const closePanel = () => {
     setGuideOpen(false)
@@ -196,7 +197,7 @@ export function MapPage() {
             <>
               <AreaStats data={data} />
               <TopPoles
-                top={data.top}
+                poles={data.poles}
                 counts={counts}
                 hidden={hidden}
                 selectedCode={selectedCode}
@@ -206,9 +207,6 @@ export function MapPage() {
           )}
         </div>
 
-        <div className="border-t border-slate-100 px-4 py-2.5">
-          <SyntheticNotice compact />
-        </div>
       </aside>
 
       {/* Centre map + right panel */}

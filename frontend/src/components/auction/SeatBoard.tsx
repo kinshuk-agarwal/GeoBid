@@ -1,10 +1,9 @@
 import type { AdSeat, SeatStatus } from '@/types'
 import { formatINR } from '@/utils/format'
 
-const STATUS: Record<SeatStatus, { label: string; className: string }> = {
-  LEADING: { label: 'Top 2', className: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+// LEADING / PROVISIONAL seats (qualifying holders) get no pill: the seat number says enough.
+const STATUS: Partial<Record<SeatStatus, { label: string; className: string }>> = {
   CONFIRMED: { label: 'Confirmed', className: 'bg-emerald-600 text-white ring-emerald-600' },
-  PROVISIONAL: { label: 'Can be taken', className: 'bg-amber-50 text-amber-800 ring-amber-200' },
   PREMIUM: { label: 'Premium', className: 'bg-violet-50 text-violet-800 ring-violet-200' },
   OPEN: { label: 'Open', className: 'bg-slate-50 text-slate-500 ring-slate-200' },
   WON: { label: 'Won', className: 'bg-emerald-600 text-white ring-emerald-600' },
@@ -24,9 +23,13 @@ export function SeatBoard({ seats, myId }: { seats: AdSeat[]; myId: number | nul
               {s.advertiser_id === null ? <span className="font-normal text-slate-400">Empty</span> : mine ? 'You' : s.alias}
             </span>
             <span className="tabular-nums">{s.amount !== null ? formatINR(s.amount) : ''}</span>
-            <span className={`w-24 shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-semibold ring-1 ring-inset ${st.className}`}>
-              {st.label}
-            </span>
+            {st ? (
+              <span className={`w-24 shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-semibold ring-1 ring-inset ${st.className}`}>
+                {st.label}
+              </span>
+            ) : (
+              <span className="w-24 shrink-0" aria-hidden />
+            )}
           </li>
         )
       })}

@@ -87,7 +87,6 @@ export function PriceTrendPanel({ poleCode, shift, date }: Props) {
           </h4>
           <p className="text-[11px] text-slate-500">
             Winning prices, last {trend.window_days} days
-            {trend.synthetic_share > 0.5 && ' (synthetic POC history)'}
           </p>
         </div>
       </div>

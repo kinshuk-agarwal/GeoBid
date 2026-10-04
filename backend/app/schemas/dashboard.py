@@ -97,3 +97,26 @@ class AdvertiserDashboard(BaseModel):
     my_auctions: list[AuctionRow]  # the most urgent (soonest round deadline) first
     my_auctions_total: int
     won: list[WonSeat]
+
+
+class BidHistoryRow(BaseModel):
+    """One bid an advertiser placed, with what became of it."""
+
+    bid_id: int
+    placed_at: datetime
+    auction_id: int
+    pole_code: str
+    category: FootfallCategory
+    date: date
+    shift_label: str
+    amount: int
+    round: str  # QUALIFYING | PREMIUM
+    # WON · HOLDING (seat held, auction live) · OUTBID · RAISED (you bid higher
+    # later in the same auction) · LOST · CANCELLED
+    outcome: str
+    seat: int | None
+
+
+class BidHistoryPage(BaseModel):
+    items: list[BidHistoryRow]
+    total: int

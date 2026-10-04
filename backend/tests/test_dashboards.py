@@ -114,3 +114,30 @@ def test_dashboards_on_demo_data(client, db, tmp_path, monkeypatch):
     assert len(ops) == 20 and ops[0]["slot_footfall"] >= ops[-1]["slot_footfall"]
     an = client.get("/api/dashboard/poles/P010/analysis", headers=login(client, "admin@geobid.local")).json()
     assert an["open_slots"] > 0 and an["kpis"]["revenue_total"] > 0 and all(s["avg_footfall"] > 0 and s["base_price"] > 0 for s in an["slots"])
+
+
+def test_bid_history_outcomes(client, seeded, p014_auction):
+    a, r = p014_auction, p014_auction.reserve_price
+    adv1, adv2 = login(client, "advertiser1@geobid.local"), login(client, "advertiser2@geobid.local")
+    client.post(f"/api/auctions/{a.id}/bids", json={"amount": r}, headers=adv1)
+    client.post(f"/api/auctions/{a.id}/bids", json={"amount": r + 300}, headers=adv1)  # raises own bid
+    client.post(f"/api/auctions/{a.id}/bids", json={"amount": r + 100}, headers=adv2)
+
+    page = client.get("/api/dashboard/advertiser/bids", headers=adv1).json()
+    assert page["total"] == 2
+    newest, older = page["items"]
+    assert newest["amount"] == r + 300 and newest["outcome"] == "HOLDING" and newest["seat"] == 1
+    assert older["amount"] == r and older["outcome"] == "RAISED" and older["pole_code"] == "P014"
+
+    client.post(f"/api/auctions/{a.id}/complete", headers=login(client, "admin@geobid.local"))
+    newest = client.get("/api/dashboard/advertiser/bids", headers=adv1).json()["items"][0]
+    assert newest["outcome"] == "WON" and newest["seat"] == 1
+    assert client.get("/api/dashboard/advertiser/bids", params={"limit": 1, "offset": 1}, headers=adv1).json()["items"][0]["amount"] == r
+    assert client.get("/api/dashboard/advertiser/bids").status_code == 401
+
+
+def test_tariff_config_exposes_formula_inputs(client):
+    cfg = client.get("/api/tariff/config").json()
+    assert cfg["slot_footfall_exponent"] == settings.slot_footfall_exponent
+    assert cfg["auction"]["premium_floor_multiplier"] == settings.premium_floor_multiplier
+    assert cfg["auction"]["seats_per_slot"] == 4 and cfg["auction"]["min_increment"] == 100

@@ -68,6 +68,16 @@ class PoleInventoryOut(BaseModel):
     slots: list[SlotOut]
 
 
+class AuctionRulesOut(BaseModel):
+    seats_per_slot: int
+    confirmed_seats: int
+    min_increment: int
+    premium_floor_multiplier: float
+    qualifying_close_time: str  # the day before the ad date
+    premium_round_start_time: str  # the day before the ad date
+    premium_close_before_slot_minutes: int
+
+
 class TariffConfigOut(BaseModel):
     formula: str
     base_rate: int
@@ -76,7 +86,11 @@ class TariffConfigOut(BaseModel):
     pole_multiplier_min: float
     pole_multiplier_max: float
     rounding: int
+    slot_footfall_exponent: float
+    slot_multiplier_min: float
+    slot_multiplier_max: float
     demand_multipliers: dict[str, float]
     shifts: list[ShiftOut]
     timezone_offset_minutes: int
+    auction: AuctionRulesOut
     note: str

@@ -99,7 +99,9 @@ def build_auction(
 ) -> Auction:
     """An auction on the standard schedule, advanced to its state at ``now`` (no commit)."""
     s = auction_service.default_schedule(slot, now)
-    start = s.qualifying_end - timedelta(days=3)
+    # Opened 3 days before qualifying closes, but never in the future: every
+    # demo slot is already open for bidding, so its bids must be in the past.
+    start = min(s.qualifying_end - timedelta(days=3), now - timedelta(hours=12))
     a = Auction(
         inventory_slot=slot,
         start_time=start,

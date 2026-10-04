@@ -6,7 +6,7 @@ from app.api.deps import AdminUser, DbSession
 from app.core.config import settings
 from app.core.exceptions import NotFoundError
 from app.models import SlotStatus
-from app.schemas.inventory import PoleInventoryOut, ShiftOut, SlotCreate, SlotOut, TariffConfigOut
+from app.schemas.inventory import AuctionRulesOut, PoleInventoryOut, ShiftOut, SlotCreate, SlotOut, TariffConfigOut
 from app.schemas.footfall import FootfallProfileOut, SlotFootfallOut, WeekdayFootfallOut
 from app.schemas.price import PriceTrendOut, TrendPointOut, WeekdayStatOut
 from app.services import inventory_service, pole_service, price_trend_service, slot_footfall_service, tariff_service
@@ -61,6 +61,9 @@ def tariff_config() -> TariffConfigOut:
         pole_multiplier_min=settings.pole_multiplier_min,
         pole_multiplier_max=settings.pole_multiplier_max,
         rounding=settings.reserve_rounding_inr,
+        slot_footfall_exponent=settings.slot_footfall_exponent,
+        slot_multiplier_min=settings.slot_multiplier_min,
+        slot_multiplier_max=settings.slot_multiplier_max,
         demand_multipliers=settings.demand_multipliers,
         shifts=[
             ShiftOut(
@@ -73,6 +76,15 @@ def tariff_config() -> TariffConfigOut:
             )
             for s in shift_svc.list_shifts()
         ],
+        auction=AuctionRulesOut(
+            seats_per_slot=settings.seats_per_slot,
+            confirmed_seats=settings.confirmed_seats,
+            min_increment=settings.auction_min_increment_inr,
+            premium_floor_multiplier=settings.premium_floor_multiplier,
+            qualifying_close_time=settings.qualifying_close_time,
+            premium_round_start_time=settings.premium_round_start_time,
+            premium_close_before_slot_minutes=settings.premium_close_before_slot_minutes,
+        ),
         timezone_offset_minutes=settings.utc_offset_minutes,
         note="POC business rule, not an industry pricing standard. The reserve is the "
         "auction's starting point; the final price is set by bidding.",

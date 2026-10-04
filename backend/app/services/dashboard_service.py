@@ -25,6 +25,8 @@ from app.schemas.dashboard import (
     AdvertiserDashboard,
     AdvertiserKpis,
     AuctionRow,
+    BidHistoryPage,
+    BidHistoryRow,
     PoleAnalysis,
     PoleAnalysisKpis,
     RevenuePoint,
@@ -251,6 +253,68 @@ def advertiser_dashboard(db: Session, user: User) -> AdvertiserDashboard:
         won=won,
     )
 
+
+
+def bid_history(db: Session, user: User, limit: int = 50, offset: int = 0) -> BidHistoryPage:
+    """Every bid ``user`` has placed, newest first, with its outcome."""
+    total = db.scalar(select(func.count(Bid.id)).where(Bid.advertiser_id == user.id)) or 0
+    bids = list(
+        db.scalars(
+            select(Bid)
+            .where(Bid.advertiser_id == user.id)
+            .order_by(Bid.timestamp.desc(), Bid.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+    )
+    ids = list({b.auction_id for b in bids})
+    auctions = {a.id: a for a in db.scalars(_auction_query().where(Auction.id.in_(ids)))} if ids else {}
+    # The user's highest bid per auction: only that one can hold or win a seat.
+    my_best = dict(
+        db.execute(
+            select(Bid.auction_id, func.max(Bid.amount))
+            .where(Bid.advertiser_id == user.id, Bid.auction_id.in_(ids))
+            .group_by(Bid.auction_id)
+        ).all()
+    ) if ids else {}
+    live_ids = [aid for aid, a in auctions.items() if a.status in auction_service.OPEN_STATUSES]
+    best = auction_service.best_bids_for(db, live_ids)
+    my_seat: dict[int, int | None] = {}
+    for aid in live_ids:
+        state = auction_service.seat_state(db, auctions[aid], best.get(aid, []))
+        my_seat[aid] = next((s.seat for s in state.seats if s.advertiser_id == user.id), None)
+
+    items = []
+    for b in bids:
+        a = auctions[b.auction_id]
+        slot = a.inventory_slot
+        seat = None
+        if b.amount < my_best[a.id]:
+            outcome = "RAISED"
+        elif a.status == AuctionStatus.COMPLETED:
+            won = next((w for w in a.winners if w.advertiser_id == user.id), None)
+            outcome, seat = ("WON", won.seat) if won else ("LOST", None)
+        elif a.status == AuctionStatus.CANCELLED:
+            outcome = "CANCELLED"
+        else:
+            seat = my_seat.get(a.id)
+            outcome = "HOLDING" if seat else "OUTBID"
+        items.append(
+            BidHistoryRow(
+                bid_id=b.id,
+                placed_at=b.timestamp,
+                auction_id=a.id,
+                pole_code=slot.pole.code,
+                category=slot.pole.category,
+                date=slot.date,
+                shift_label=shift_svc.get_shift(slot.shift).label,
+                amount=b.amount,
+                round=b.round,
+                outcome=outcome,
+                seat=seat,
+            )
+        )
+    return BidHistoryPage(items=items, total=total)
 
 @dataclass
 class OpportunityFilters:

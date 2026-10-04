@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from app.api.deps import AdminUser, AdvertiserUser, DbSession, OptionalUser
 from app.models import AuctionRound, FootfallCategory, User, UserRole
-from app.schemas.dashboard import AdvertiserDashboard, AuctionRow, PoleAnalysis
+from app.schemas.dashboard import AdvertiserDashboard, AuctionRow, BidHistoryPage, PoleAnalysis
 from app.services import dashboard_service
 from app.services.dashboard_service import OpportunityFilters
 
@@ -23,6 +23,17 @@ def pole_analysis(code: str, db: DbSession, _admin: AdminUser) -> PoleAnalysis:
 @router.get("/dashboard/advertiser", response_model=AdvertiserDashboard)
 def advertiser_dashboard(db: DbSession, user: AdvertiserUser) -> AdvertiserDashboard:
     return dashboard_service.advertiser_dashboard(db, user)
+
+
+@router.get("/dashboard/advertiser/bids", response_model=BidHistoryPage)
+def advertiser_bids(
+    db: DbSession,
+    user: AdvertiserUser,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> BidHistoryPage:
+    """Your bids, newest first, with what became of each."""
+    return dashboard_service.bid_history(db, user, limit, offset)
 
 
 @router.get("/dashboard/opportunities", response_model=list[AuctionRow])

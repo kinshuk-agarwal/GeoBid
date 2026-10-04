@@ -10,6 +10,7 @@ from app.models import (
     Auction,
     AuctionRound,
     AuctionStatus,
+    Bid,
     InventorySlot,
     Pole,
     SlotPriceHistory,
@@ -376,3 +377,4 @@ def test_demo_seed(db, tmp_path, monkeypatch):
     else:
         assert tomorrow.round == AuctionRound.QUALIFYING and not tomorrow.confirmed_seats
     assert db.query(WinningAdvertisement).count() > 0
+    assert db.query(Bid).filter(Bid.timestamp > utcnow()).count() == 0  # demo bids are all in the past

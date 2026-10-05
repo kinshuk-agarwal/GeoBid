@@ -8,8 +8,10 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     # The free tier's disk resets on every restart and demo auctions follow the
-    # real clock, so a fresh demo dataset is seeded at each start (~30 s).
-    startCommand: python -m scripts.seed_database --reset && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # real clock, so a fresh demo dataset is seeded at each start. The server
+    # starts first (Render gives up if no port opens within ~5 min) and the
+    # seed runs alongside it; the API is ready once the seed finishes.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT & python -m scripts.seed_database --reset; wait
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION

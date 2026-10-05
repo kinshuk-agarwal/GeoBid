@@ -79,6 +79,9 @@ class Settings(BaseSettings):
     # Map tiles are proxied and cached by the backend (see app/api/tiles.py).
     tile_upstream_url: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
     tile_cache_dir: Path = BACKEND_DIR / "data" / "tile_cache"
+    # Footfall camera videos (repo-root ``videos/``); browser copies live in ``web/``
+    # (made by ``python -m scripts.prepare_videos``).
+    videos_dir: Path = BACKEND_DIR.parent / "videos"
     synthetic_seed: int = 42
 
     # Relative footfall classification: the top ``high_share`` of poles by

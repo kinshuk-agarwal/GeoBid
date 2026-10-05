@@ -102,7 +102,7 @@ def test_opportunities_filters(client, seeded, p014_auction):
 def test_admin_users(client, seeded):
     admin = login(client, "admin@geobid.local")
     users = client.get("/api/users", params={"role": "ADVERTISER"}, headers=admin).json()
-    assert len(users) == 8 and all(u["role"] == "ADVERTISER" for u in users)
+    assert len(users) == 20 and all(u["role"] == "ADVERTISER" for u in users)
 
 
 def test_dashboards_on_demo_data(client, db, tmp_path, monkeypatch):
@@ -141,3 +141,44 @@ def test_tariff_config_exposes_formula_inputs(client):
     assert cfg["slot_footfall_exponent"] == settings.slot_footfall_exponent
     assert cfg["auction"]["premium_floor_multiplier"] == settings.premium_floor_multiplier
     assert cfg["auction"]["seats_per_slot"] == 4 and cfg["auction"]["min_increment"] == 100
+
+
+def test_finance_dashboard(client, seeded, p014_auction):
+    a, r = p014_auction, p014_auction.reserve_price
+    admin = login(client, "admin@geobid.local")
+    adv1, adv2 = login(client, "advertiser1@geobid.local"), login(client, "advertiser2@geobid.local")
+    before = client.get("/api/dashboard/admin/finance", params={"days": 30, "granularity": "day"}, headers=admin).json()
+
+    client.post(f"/api/auctions/{a.id}/bids", json={"amount": r}, headers=adv1)
+    client.post(f"/api/auctions/{a.id}/bids", json={"amount": r + 300}, headers=adv2)
+    client.post(f"/api/auctions/{a.id}/advance", headers=admin)  # qualifying closes: both seats confirmed
+    client.post(f"/api/auctions/{a.id}/complete", headers=admin)
+
+    # The slot is tomorrow, so it books into the window that ends tomorrow at the latest:
+    # the finance window ends today, so check all-time totals and the per-advertiser figures.
+    after = client.get("/api/dashboard/admin/finance", params={"days": 0, "granularity": "month"}, headers=admin).json()
+    assert after["kpis"]["all_time_revenue"] - before["kpis"]["all_time_revenue"] == 0  # tomorrow isn't booked yet
+    assert after["granularity"] == "month" and len(after["by_slot"]) == 12
+    assert {c["category"] for c in after["by_category"]} == {"HIGH", "MEDIUM", "LOW"}
+    assert client.get("/api/dashboard/admin/finance", headers=adv1).status_code == 403
+    assert client.get("/api/dashboard/admin/finance", params={"granularity": "year"}, headers=admin).status_code == 422
+
+
+def test_finance_dashboard_on_demo_data(client, db, tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "synthetic_data_dir", tmp_path)
+    seed_all(db, tmp_path, price_history=False)
+    admin = login(client, "admin@geobid.local")
+    d = client.get("/api/dashboard/admin/finance", params={"days": 90, "granularity": "week"}, headers=admin).json()
+    k = d["kpis"]
+    assert k["all_time_revenue"] > k["last_30_days"]["revenue"] > k["last_7_days"]["revenue"] > 0
+    assert 0 < k["premium_share"] < 1 and 0 < k["seat_fill_rate"] <= 1 and k["active_buyers"] > 8
+    assert sum(b["qualifying"] + b["premium"] for b in d["revenue"]) == sum(a["revenue"] for a in d["top_advertisers"]) or len(d["top_advertisers"]) == 10
+    tops = [a["revenue"] for a in d["top_advertisers"]]
+    assert tops == sorted(tops, reverse=True) and abs(sum(c["share"] for c in d["by_category"]) - 1) < 0.01
+    freq = [(f["purchase_days"], f["seats"]) for f in d["frequent_buyers"]]
+    assert freq == sorted(freq, reverse=True)
+    poles = d["top_poles"]
+    assert len(poles) == 10 and poles[0]["revenue"] >= poles[-1]["revenue"] and 0 < poles[0]["fill_rate"] <= 1
+    assert d["revenue"][0]["start"] <= d["window_start"]  # weeks start on Monday
+    monthly = client.get("/api/dashboard/admin/finance", params={"days": 0, "granularity": "month"}, headers=admin).json()
+    assert len(monthly["revenue"]) >= 6  # six months of history

@@ -372,3 +372,74 @@ export interface BidHistoryPage {
   items: BidHistoryRow[]
   total: number
 }
+
+/** GET /videos: a footfall camera video (url is relative to the API host). */
+export interface Video {
+  name: string
+  title: string
+  url: string
+  size_bytes: number
+  width: number | null
+  height: number | null
+  duration_s: number | null
+}
+
+// --- Admin finance dashboard (GET /dashboard/admin/finance) ---
+
+export type FinanceGranularity = 'day' | 'week' | 'month'
+
+export interface PeriodTotal {
+  revenue: number
+  seats: number
+  previous_revenue: number
+}
+
+export interface AdvertiserFinance {
+  advertiser_id: number
+  name: string
+  revenue: number
+  seats: number
+  avg_price: number
+  share: number
+  purchase_days: number
+  auctions_bid: number
+  win_rate: number
+  first_purchase: string
+  last_purchase: string
+}
+
+export interface FinanceDashboardData {
+  as_of: string
+  window_start: string
+  window_end: string
+  granularity: FinanceGranularity
+  kpis: {
+    today: PeriodTotal
+    last_7_days: PeriodTotal
+    last_30_days: PeriodTotal
+    all_time_revenue: number
+    all_time_seats: number
+    avg_seat_price: number | null
+    seat_fill_rate: number
+    premium_share: number
+    active_buyers: number
+    repeat_buyer_rate: number
+  }
+  revenue: { start: string; qualifying: number; premium: number; seats: number }[]
+  top_advertisers: AdvertiserFinance[]
+  frequent_buyers: AdvertiserFinance[]
+  top_poles: {
+    code: string
+    name: string
+    road_name: string | null
+    category: FootfallCategory
+    revenue: number
+    seats: number
+    avg_price: number
+    share: number
+    sold_slots: number
+    fill_rate: number
+  }[]
+  by_slot: { shift: string; label: string; revenue: number; seats: number; avg_price: number | null }[]
+  by_category: { category: FootfallCategory; revenue: number; seats: number; share: number }[]
+}

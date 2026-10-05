@@ -25,3 +25,7 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Original footfall videos (OpenCV mp4v, not browser-playable, 38 MB).
+# Only the H.264 copies in videos/web/ (scripts/prepare_videos.py) are committed.
+/videos/*.mp4

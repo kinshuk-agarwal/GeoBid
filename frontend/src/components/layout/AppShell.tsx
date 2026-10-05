@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogIn, LogOut, MapPinned } from 'lucide-react'
+import { Film, IndianRupee, LayoutDashboard, LogIn, LogOut, MapPinned } from 'lucide-react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -30,6 +30,16 @@ export function AppShell() {
           <NavLink to="/map" className={navClass}>
             <MapPinned className="size-4" />
             Map
+          </NavLink>
+          {user?.role === 'ADMIN' && (
+            <NavLink to="/admin/finance" className={navClass}>
+              <IndianRupee className="size-4" />
+              Finance
+            </NavLink>
+          )}
+          <NavLink to="/videos" className={navClass}>
+            <Film className="size-4" />
+            Videos
           </NavLink>
           {user && HOME_FOR[user.role] !== '/map' && (
             <NavLink to={HOME_FOR[user.role]} className={navClass}>

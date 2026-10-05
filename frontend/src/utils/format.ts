@@ -27,3 +27,12 @@ export function footfallRange(n: number): string {
 }
 
 export const formatKm = (n: number) => `${n < 10 ? n.toFixed(1) : Math.round(n)} km`
+
+/** Indian short form for big money: ₹6.03 Cr, ₹21.4 L, ₹8.2k. */
+export function formatINRCompact(n: number): string {
+  const a = Math.abs(n)
+  if (a >= 1e7) return `₹${+(n / 1e7).toFixed(2)} Cr`
+  if (a >= 1e5) return `₹${+(n / 1e5).toFixed(1)} L`
+  if (a >= 1e3) return `₹${+(n / 1e3).toFixed(1)}k`
+  return `₹${n}`
+}

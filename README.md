@@ -113,6 +113,8 @@ HIGH, the next 40% MEDIUM, the rest LOW (`GEOBID_FOOTFALL_HIGH_SHARE`,
 | GET | `/api/dashboard/advertiser` | advertiser |
 | GET | `/api/dashboard/advertiser/bids?limit=&offset=` (your bids, newest first, with outcome) | advertiser |
 | GET | `/api/dashboard/opportunities` (filters: `date`, `shift`, `category`, `min_footfall`, `min_score`, `max_price`, `round`, `latitude`/`longitude`/`radius_km`) | public (adds your seat when signed in) |
+| GET | `/api/dashboard/admin/finance?days=&granularity=` (`days` 0 = all time; `day`/`week`/`month`) | admin |
+| GET | `/api/videos` · `/api/videos/{name}` | public |
 | GET | `/api/users?role=` | admin |
 | GET | `/api/poles/{id or code}/footfall-profile?date=` | public |
 | GET | `/api/auctions` (filters: `status`, `pole_id`, `date`, `shift`) | public |
@@ -258,10 +260,35 @@ poles and auctions (there are no separate pole owners). Both start on the map.
   (*Close qualifying* → *Open premium* → *Close auction*), *End now*, or
   *Create* one for a slot without an auction (two-click confirm). Below that
   are a 30-day revenue chart and footfall/pricing per slot.
+- **Admin finance** (`/admin/finance`, *Finance* in the nav): revenue today so far,
+  last 7 / 30 days (each vs the period before) and all time; then, for a chosen
+  period (30 days / 90 days / 6 months / all time) and view (daily / weekly /
+  monthly): revenue over time split into qualifying- and premium-round seats,
+  average seat price, seats filled, premium share, active and repeat buyers,
+  top advertisers and top poles by revenue, frequent buyers (buying days, seats,
+  win rate), and revenue by time of day and by pole footfall. Revenue is booked
+  on the advertising date; there are no costs in the model, so revenue = profit.
+  The demo seed creates 6 months of sales history for it.
 - **Advertiser** (`/advertiser/dashboard`): seats held / at risk / won, total
   spend; *My auctions* (the 50 closing soonest, with your seat and what you
   must bid to keep or regain it); *Find inventory* with filters; seats won; *My bid history* (every bid with its result: holding a seat, outbid, raised, won, not won).
   Bids open the same popup as the map.
+
+## Footfall videos
+
+The **Videos** page (`/videos`) plays the footfall camera footage: the raw
+input and the annotated detection output. Put the original `.mp4` files in
+`videos/` and run, from `backend/` (needs ffmpeg):
+
+```bash
+python -m scripts.prepare_videos
+```
+
+OpenCV writes MPEG-4 Part 2 (`mp4v`), which browsers can't play, so this
+converts each video to H.264 in `videos/web/` and records its duration and
+size in `videos/web/index.json`. Only `videos/web/` is committed and served:
+`GET /api/videos` lists the videos, `GET /api/videos/{name}` streams one
+(with range requests for seeking).
 
 ## Deployment (Vercel + Render)
 

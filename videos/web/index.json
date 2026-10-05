@@ -1,0 +1,37 @@
+[
+  {
+    "name": "annotated.mp4",
+    "size_bytes": 1392461,
+    "width": 720,
+    "height": 1280,
+    "duration_s": 7.4
+  },
+  {
+    "name": "annotated1.mp4",
+    "size_bytes": 4755127,
+    "width": 640,
+    "height": 360,
+    "duration_s": 45.6
+  },
+  {
+    "name": "annotated2.mp4",
+    "size_bytes": 3095341,
+    "width": 640,
+    "height": 360,
+    "duration_s": 22.3
+  },
+  {
+    "name": "annotated3.mp4",
+    "size_bytes": 1188670,
+    "width": 640,
+    "height": 360,
+    "duration_s": 13.6
+  },
+  {
+    "name": "input.mp4",
+    "size_bytes": 1103494,
+    "width": 360,
+    "height": 640,
+    "duration_s": 10.1
+  }
+]

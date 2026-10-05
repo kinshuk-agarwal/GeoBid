@@ -378,3 +378,12 @@ def test_demo_seed(db, tmp_path, monkeypatch):
         assert tomorrow.round == AuctionRound.QUALIFYING and not tomorrow.confirmed_seats
     assert db.query(WinningAdvertisement).count() > 0
     assert db.query(Bid).filter(Bid.timestamp > utcnow()).count() == 0  # demo bids are all in the past
+    # Premium bids count when past auctions close: some sold seats were won in the premium round.
+    premium_wins = (
+        db.query(WinningAdvertisement)
+        .join(Bid, (Bid.auction_id == WinningAdvertisement.auction_id) & (Bid.advertiser_id == WinningAdvertisement.advertiser_id)
+              & (Bid.amount == WinningAdvertisement.winning_bid))
+        .filter(Bid.round == "PREMIUM")
+        .count()
+    )
+    assert premium_wins > 0

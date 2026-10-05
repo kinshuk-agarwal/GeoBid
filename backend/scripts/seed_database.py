@@ -41,6 +41,19 @@ DEMO_USERS: list[tuple[str, str, UserRole]] = [
     ("Pixel Studios", "advertiser6@geobid.local", UserRole.ADVERTISER),
     ("Bluewave Bank", "advertiser7@geobid.local", UserRole.ADVERTISER),
     ("Spice Route", "advertiser8@geobid.local", UserRole.ADVERTISER),
+    # Occasional buyers: they appear in the finance dashboard's history.
+    ("Lotus Jewellers", "advertiser9@geobid.local", UserRole.ADVERTISER),
+    ("Urban Threads", "advertiser10@geobid.local", UserRole.ADVERTISER),
+    ("Greenleaf Organics", "advertiser11@geobid.local", UserRole.ADVERTISER),
+    ("Velocity Motors", "advertiser12@geobid.local", UserRole.ADVERTISER),
+    ("Cloudnine Travel", "advertiser13@geobid.local", UserRole.ADVERTISER),
+    ("Brightpath Academy", "advertiser14@geobid.local", UserRole.ADVERTISER),
+    ("Harbor Insurance", "advertiser15@geobid.local", UserRole.ADVERTISER),
+    ("Peak Fitness Gear", "advertiser16@geobid.local", UserRole.ADVERTISER),
+    ("Sunrise Bakery", "advertiser17@geobid.local", UserRole.ADVERTISER),
+    ("Orbit Electronics", "advertiser18@geobid.local", UserRole.ADVERTISER),
+    ("Crescent Hospital", "advertiser19@geobid.local", UserRole.ADVERTISER),
+    ("Maple Realty", "advertiser20@geobid.local", UserRole.ADVERTISER),
 ]
 
 

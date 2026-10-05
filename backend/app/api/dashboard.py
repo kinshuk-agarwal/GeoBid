@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -8,7 +8,8 @@ from sqlalchemy import select
 from app.api.deps import AdminUser, AdvertiserUser, DbSession, OptionalUser
 from app.models import AuctionRound, FootfallCategory, User, UserRole
 from app.schemas.dashboard import AdvertiserDashboard, AuctionRow, BidHistoryPage, PoleAnalysis
-from app.services import dashboard_service
+from app.schemas.finance import FinanceDashboard
+from app.services import dashboard_service, finance_service
 from app.services.dashboard_service import OpportunityFilters
 
 router = APIRouter(tags=["dashboards"])
@@ -58,6 +59,18 @@ def opportunities(
     viewer = user if user and user.role == UserRole.ADVERTISER else None
     return dashboard_service.opportunities(db, f, viewer)
 
+
+
+@router.get("/dashboard/admin/finance", response_model=FinanceDashboard)
+def admin_finance(
+    db: DbSession,
+    _admin: AdminUser,
+    days: Annotated[int, Query(ge=0, le=3660, description="Window for charts and rankings in days; 0 = all time")] = 90,
+    granularity: Annotated[Literal["day", "week", "month"], Query()] = "week",
+) -> FinanceDashboard:
+    """Revenue (today / 7 / 30 days / all time), revenue over time by round,
+    top advertisers, frequent buyers, top poles, and revenue by slot and category."""
+    return finance_service.finance_dashboard(db, days or None, granularity)
 
 
 class UserBrief(BaseModel):

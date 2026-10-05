@@ -2,8 +2,11 @@ import type {
   AdvertiserDashboardData,
   AuctionRow,
   BidHistoryPage,
+  FinanceDashboardData,
+  FinanceGranularity,
   PoleAnalysisData,
   TariffConfig,
+  Video,
 } from '@/types'
 import type { Auction, Bid, FootfallProfile, MapResponse, Pole, PoleInventory, PriceTrend, PublicConfig, TokenResponse, User } from '@/types'
 
@@ -76,6 +79,9 @@ export interface OpportunityQuery {
 export const dashboardApi = {
   poleAnalysis: (code: string) => api.get<PoleAnalysisData>(`/dashboard/poles/${code}/analysis`).then((r) => r.data),
   advertiser: () => api.get<AdvertiserDashboardData>('/dashboard/advertiser').then((r) => r.data),
+  /** ``days`` = window for charts and rankings; 0 = all time. */
+  finance: (days: number, granularity: FinanceGranularity) =>
+    api.get<FinanceDashboardData>('/dashboard/admin/finance', { params: { days, granularity } }).then((r) => r.data),
   myBids: (limit = 25, offset = 0) =>
     api.get<BidHistoryPage>('/dashboard/advertiser/bids', { params: { limit, offset } }).then((r) => r.data),
   opportunities: (q: OpportunityQuery) => api.get<AuctionRow[]>('/dashboard/opportunities', { params: q }).then((r) => r.data),
@@ -87,4 +93,8 @@ export const adminApi = {
   start: (id: number) => api.post<Auction>(`/auctions/${id}/start`).then((r) => r.data),
   advance: (id: number) => api.post<Auction>(`/auctions/${id}/advance`).then((r) => r.data),
   complete: (id: number) => api.post<Auction>(`/auctions/${id}/complete`).then((r) => r.data),
+}
+
+export const videosApi = {
+  list: () => api.get<Video[]>('/videos').then((r) => r.data),
 }

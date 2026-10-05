@@ -102,7 +102,7 @@ def test_opportunities_filters(client, seeded, p014_auction):
 def test_admin_users(client, seeded):
     admin = login(client, "admin@geobid.local")
     users = client.get("/api/users", params={"role": "ADVERTISER"}, headers=admin).json()
-    assert len(users) == 20 and all(u["role"] == "ADVERTISER" for u in users)
+    assert len(users) == 9 and all(u["role"] == "ADVERTISER" for u in users)  # 8 demo advertisers + the fresh account
 
 
 def test_dashboards_on_demo_data(client, db, tmp_path, monkeypatch):
@@ -171,14 +171,46 @@ def test_finance_dashboard_on_demo_data(client, db, tmp_path, monkeypatch):
     d = client.get("/api/dashboard/admin/finance", params={"days": 90, "granularity": "week"}, headers=admin).json()
     k = d["kpis"]
     assert k["all_time_revenue"] > k["last_30_days"]["revenue"] > k["last_7_days"]["revenue"] > 0
-    assert 0 < k["premium_share"] < 1 and 0 < k["seat_fill_rate"] <= 1 and k["active_buyers"] > 8
+    assert 0 < k["premium_share"] < 1 and 0 < k["seat_fill_rate"] <= 1 and k["active_buyers"] == 8  # the demo advertisers only
     assert sum(b["qualifying"] + b["premium"] for b in d["revenue"]) == sum(a["revenue"] for a in d["top_advertisers"]) or len(d["top_advertisers"]) == 10
     tops = [a["revenue"] for a in d["top_advertisers"]]
     assert tops == sorted(tops, reverse=True) and abs(sum(c["share"] for c in d["by_category"]) - 1) < 0.01
     freq = [(f["purchase_days"], f["seats"]) for f in d["frequent_buyers"]]
     assert freq == sorted(freq, reverse=True)
     poles = d["top_poles"]
-    assert len(poles) == 10 and poles[0]["revenue"] >= poles[-1]["revenue"] and 0 < poles[0]["fill_rate"] <= 1
+    assert 0 < len(poles) <= 10 and poles[0]["revenue"] >= poles[-1]["revenue"] and 0 < poles[0]["fill_rate"] <= 1
     assert d["revenue"][0]["start"] <= d["window_start"]  # weeks start on Monday
     monthly = client.get("/api/dashboard/admin/finance", params={"days": 0, "granularity": "month"}, headers=admin).json()
     assert len(monthly["revenue"]) >= 6  # six months of history
+
+
+def test_demo_data_is_consistent_and_realistic(client, db, tmp_path, monkeypatch):
+    """Admin totals come from the same advertisers the dashboards show, at believable volumes."""
+    monkeypatch.setattr(settings, "synthetic_data_dir", tmp_path)
+    seed_all(db, tmp_path, price_history=False)
+    admin = login(client, "admin@geobid.local")
+    fin = client.get("/api/dashboard/admin/finance", params={"days": 0}, headers=admin).json()
+    spends = {}
+    for i in range(1, 9):
+        d = client.get("/api/dashboard/advertiser", headers=login(client, f"advertiser{i}@geobid.local")).json()
+        spends[i] = d["kpis"]["total_spend"]
+        assert 0 < d["my_auctions_total"] <= 40 and d["kpis"]["seats_won"] < 2 * 180  # < 2 seats a day
+        won = d["won"][0]
+        assert won["slot_footfall"] > 0 and won["day_footfall"] >= won["slot_footfall"]
+    assert sum(spends.values()) == fin["kpis"]["all_time_revenue"]  # nobody else is buying
+
+    fresh = login(client, "newuser@geobid.local")
+    d = client.get("/api/dashboard/advertiser", headers=fresh).json()
+    assert d["my_auctions_total"] == 0 and d["kpis"]["seats_won"] == 0 and d["kpis"]["total_spend"] == 0
+    assert client.get("/api/dashboard/advertiser/bids", headers=fresh).json()["total"] == 0
+
+
+def test_signup_then_use_the_app(client, seeded):
+    res = client.post("/api/auth/register", json={"name": "Test Brand", "email": "test.brand@example.com", "password": "secret123"})
+    assert res.status_code == 201 and res.json()["user"]["role"] == "ADVERTISER"
+    headers = {"Authorization": f"Bearer {res.json()['access_token']}"}
+    assert client.get("/api/dashboard/advertiser", headers=headers).json()["my_auctions_total"] == 0
+    again = client.post("/api/auth/register", json={"name": "Other", "email": "TEST.brand@example.com", "password": "secret123"})
+    assert again.status_code == 409  # emails are unique, case-insensitively
+    assert client.post("/api/auth/register", json={"name": "X", "email": "bad", "password": "short"}).status_code == 422
+

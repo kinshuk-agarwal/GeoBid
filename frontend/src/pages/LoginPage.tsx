@@ -1,6 +1,6 @@
 import { LogIn } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 
 import { errorMessage } from '@/api/client'
 import { Spinner } from '@/components/common/Spinner'
@@ -13,6 +13,7 @@ const DEMO_ACCOUNTS = [
   { email: 'advertiser3@geobid.local', name: 'Zenith Realty', role: 'Advertiser' },
   { email: 'advertiser4@geobid.local', name: 'Metro Mart', role: 'Advertiser' },
   { email: 'advertiser5@geobid.local', name: 'Swift Fitness', role: 'Advertiser' },
+  { email: 'newuser@geobid.local', name: 'New Advertiser', role: 'No bids yet' },
   { email: 'admin@geobid.local', name: 'GeoBid Admin', role: 'Admin' },
 ]
 
@@ -91,6 +92,12 @@ export function LoginPage() {
             {submitting ? <Spinner className="size-4 border-slate-500 border-t-white" /> : <LogIn className="size-4" />}
             Sign in
           </button>
+          <p className="mt-4 text-center text-sm text-slate-500">
+            New to GeoBid?{' '}
+            <Link to="/signup" state={location.state} className="font-medium text-slate-900 underline-offset-2 hover:underline">
+              Create an account
+            </Link>
+          </p>
         </form>
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

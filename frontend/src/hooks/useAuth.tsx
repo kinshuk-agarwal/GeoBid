@@ -9,6 +9,7 @@ interface AuthState {
   /** true while restoring a session from a stored token */
   loading: boolean
   login: (email: string, password: string) => Promise<User>
+  register: (name: string, email: string, password: string) => Promise<User>
   logout: () => void
 }
 
@@ -34,12 +35,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user
   }, [])
 
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    const res = await authApi.register(name, email, password)
+    tokenStore.set(res.access_token)
+    setUser(res.user)
+    return res.user
+  }, [])
+
   const logout = useCallback(() => {
     tokenStore.clear()
     setUser(null)
   }, [])
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading, login, logout])
+  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

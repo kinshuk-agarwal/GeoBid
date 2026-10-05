@@ -320,7 +320,18 @@ export interface AdvertiserDashboardData {
   kpis: { seats_held: number; seats_at_risk: number; seats_won: number; total_spend: number; open_auctions: number }
   my_auctions: AuctionRow[]
   my_auctions_total: number
-  won: { auction_id: number; pole_code: string; date: string; shift_label: string; seat: number; amount: number }[]
+  won: {
+    auction_id: number
+    pole_code: string
+    date: string
+    shift_label: string
+    seat: number
+    amount: number
+    /** people passing during the 2-hour slot that day */
+    slot_footfall: number | null
+    /** people passing the pole over that whole day */
+    day_footfall: number | null
+  }[]
 }
 
 export interface UserBrief {

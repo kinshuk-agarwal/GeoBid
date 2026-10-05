@@ -11,6 +11,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { MapPage } from '@/pages/MapPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PoleDetailsPage } from '@/pages/PoleDetailsPage'
+import { SignupPage } from '@/pages/SignupPage'
 import { VideosPage } from '@/pages/VideosPage'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="poles/:id" element={<PoleDetailsPage />} />
               <Route path="auctions/:id" element={<AuctionPage />} />
               <Route path="login" element={<LoginPage />} />
+              <Route path="signup" element={<SignupPage />} />
               <Route path="videos" element={<VideosPage />} />
               <Route path="admin/finance" element={<RequireRole roles={['ADMIN']}><AdminFinancePage /></RequireRole>} />
               <Route path="advertiser/dashboard" element={<RequireRole roles={['ADVERTISER']}><AdvertiserDashboardPage /></RequireRole>} />

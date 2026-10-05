@@ -90,6 +90,8 @@ class WonSeat(BaseModel):
     shift_label: str
     seat: int
     amount: int
+    slot_footfall: int | None  # people passing during the 2-hour slot that day
+    day_footfall: int | None  # people passing the pole over that whole day
 
 
 class AdvertiserDashboard(BaseModel):

@@ -319,12 +319,15 @@ starts from fresh demo data. For a custom frontend domain, add it to
 
 Password for all: `geobid123`
 
-| Role       | Email                      |
-|------------|----------------------------|
-| Admin      | admin@geobid.local         |
-| Advertiser | advertiser1@geobid.local   |
-| Advertiser | advertiser2@geobid.local   |
-| Advertiser | advertiser3@geobid.local   |
+| Role       | Email                                   | Notes |
+|------------|-----------------------------------------|-------|
+| Admin      | admin@geobid.local                      | runs poles and auctions; Finance page |
+| Advertiser | advertiser1@geobid.local … advertiser8@geobid.local | the 8 demo advertisers: 6 months of purchases, ~30 live auctions each |
+| Advertiser | newuser@geobid.local                    | no bids or purchases, for testing a first-time bidder |
+
+New advertisers can also create an account at `/signup` (*Sign up* in the header).
+All demo revenue comes from the 8 demo advertisers, so the admin's Finance totals
+equal the sum of their dashboards' spend.
 
 ## Configuration
 

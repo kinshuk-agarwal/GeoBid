@@ -68,6 +68,14 @@ export function AppShell() {
               </button>
             </>
           ) : (
+            <>
+            <Link
+              to="/signup"
+              state={{ from: location.pathname + location.search }}
+              className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:inline-flex"
+            >
+              Sign up
+            </Link>
             <Link
               to="/login"
               state={{ from: location.pathname + location.search }}
@@ -76,6 +84,7 @@ export function AppShell() {
               <LogIn className="size-4" />
               Sign in
             </Link>
+            </>
           )}
         </div>
       </header>

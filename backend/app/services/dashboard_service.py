@@ -222,6 +222,7 @@ def advertiser_dashboard(db: Session, user: User) -> AdvertiserDashboard:
         .where(WinningAdvertisement.advertiser_id == user.id)
         .order_by(InventorySlot.date.desc())
     ).all()
+    profiles = slot_footfall_service.load_profiles(db, list({p.id for _, _, p in won_rows}))
     won = [
         WonSeat(
             auction_id=w.auction_id,
@@ -230,6 +231,10 @@ def advertiser_dashboard(db: Session, user: User) -> AdvertiserDashboard:
             shift_label=shift_svc.get_shift(s.shift).label,
             seat=w.seat,
             amount=w.winning_bid,
+            slot_footfall=slot_footfall_service.shift_footfall(profiles.get(p.id), s.date, s.shift),
+            day_footfall=(
+                slot_footfall_service.day_total(profiles[p.id], s.date.weekday()) if p.id in profiles else p.footfall
+            ),
         )
         for w, s, p in won_rows
     ]

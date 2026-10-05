@@ -10,7 +10,7 @@ import { BidHistory } from '@/components/dashboard/BidHistory'
 import { Empty, Kpi, KpiGrid, Section } from '@/components/dashboard/Kpi'
 import { usePolling } from '@/hooks/usePolling'
 import type { AdvertiserDashboardData, AuctionRow } from '@/types'
-import { formatINR, formatNumber } from '@/utils/format'
+import { footfallRange, formatINR, formatNumber } from '@/utils/format'
 import { DEFAULT_LOCATION } from '@/utils/mapDefaults'
 
 const SEAT_LABEL: Record<string, string> = {
@@ -195,12 +195,14 @@ export function AdvertiserDashboardPage() {
               <Empty>No wins yet.</Empty>
             ) : (
               <div className="-mx-4 overflow-x-auto">
-                <table className="w-full min-w-[480px] text-sm">
+                <table className="w-full min-w-[720px] text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
                       <th className="px-4 py-2 font-medium">Pole</th>
                       <th className="px-4 py-2 font-medium">Slot</th>
                       <th className="px-4 py-2 font-medium">Seat</th>
+                      <th className="px-4 py-2 text-right font-medium">Footfall in slot</th>
+                      <th className="px-4 py-2 text-right font-medium">Footfall that day</th>
                       <th className="px-4 py-2 text-right font-medium">Paid</th>
                     </tr>
                   </thead>
@@ -212,6 +214,8 @@ export function AdvertiserDashboardPage() {
                           {shortDate(w.date)} <span className="text-slate-500">· {w.shift_label}</span>
                         </td>
                         <td className="px-4 py-2">{w.seat}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{w.slot_footfall !== null ? footfallRange(w.slot_footfall) : '—'}</td>
+                        <td className="px-4 py-2 text-right tabular-nums text-slate-600">{w.day_footfall !== null ? footfallRange(w.day_footfall) : '—'}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{formatINR(w.amount)}</td>
                       </tr>
                     ))}

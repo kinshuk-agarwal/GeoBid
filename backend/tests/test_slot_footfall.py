@@ -88,3 +88,23 @@ def test_slot_footfall_on_inventory_and_profile_api(client, seeded):
     other = (tomorrow + timedelta(days=1)).isoformat()
     other_prof = client.get(f"/api/poles/P014/footfall-profile?date={other}").json()
     assert other_prof["weekday"] != prof["weekday"]
+
+
+def test_measured_footfall_through_a_slot():
+    from datetime import date, timedelta
+
+    from app.services import shifts as shift_svc
+    from app.services.slot_footfall_service import actual_footfall, forecast_range, measured
+
+    day, shift = date(2026, 10, 5), "S9"  # 16:00-18:00 local
+    start, end = shift_svc.shift_window(day, shift)
+    total = actual_footfall(1500, "P014", day, shift)
+    assert total == actual_footfall(1500, "P014", day, shift)  # stable
+    assert abs(total / 1500 - 1) <= 0.16
+    assert measured(1500, "P014", day, shift, start - timedelta(minutes=1)) == ("upcoming", None)
+    status, so_far = measured(1500, "P014", day, shift, start + (end - start) / 2)
+    assert status == "live" and so_far == round(total / 2)
+    assert measured(1500, "P014", day, shift, end) == ("done", total)
+    low, high = forecast_range(1500)
+    assert low < 1500 < high and low % 50 == 0 and high % 50 == 0
+

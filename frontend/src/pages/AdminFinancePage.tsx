@@ -206,7 +206,7 @@ function PeriodTile({ label, period, compare }: { label: string; period: PeriodT
         <Icon className="size-3.5" aria-hidden />
         {change === null ? `no sales ${compare}` : `${change > 0 ? '+' : ''}${pct(change)} vs ${compare}`}
       </div>
-      <div className="text-[11px] text-slate-400">{formatNumber(period.seats)} seats</div>
+      <div className="text-[11px] text-slate-400">{formatNumber(period.seats)} {period.seats === 1 ? 'seat' : 'seats'}</div>
     </div>
   )
 }

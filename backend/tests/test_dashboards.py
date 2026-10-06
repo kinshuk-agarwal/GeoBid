@@ -195,8 +195,14 @@ def test_demo_data_is_consistent_and_realistic(client, db, tmp_path, monkeypatch
         d = client.get("/api/dashboard/advertiser", headers=login(client, f"advertiser{i}@geobid.local")).json()
         spends[i] = d["kpis"]["total_spend"]
         assert 0 < d["my_auctions_total"] <= 40 and d["kpis"]["seats_won"] < 2 * 180  # < 2 seats a day
-        won = d["won"][0]
-        assert won["slot_footfall"] > 0 and won["day_footfall"] >= won["slot_footfall"]
+        measured = []
+        for won in d["won"]:
+            assert won["predicted_footfall"] > 0
+            assert won["predicted_low"] < won["predicted_footfall"] < won["predicted_high"]
+            if won["actual_footfall"] is not None:  # slot has run: measured count close to the forecast
+                assert abs(won["actual_footfall"] / won["predicted_footfall"] - 1) <= 0.16 + 0.01
+                measured.append(won["predicted_low"] <= won["actual_footfall"] <= won["predicted_high"])
+        assert measured and 0.6 <= sum(measured) / len(measured) < 1  # mostly right, sometimes a small miss
     assert sum(spends.values()) == fin["kpis"]["all_time_revenue"]  # nobody else is buying
 
     fresh = login(client, "newuser@geobid.local")

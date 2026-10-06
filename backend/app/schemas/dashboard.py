@@ -90,8 +90,12 @@ class WonSeat(BaseModel):
     shift_label: str
     seat: int
     amount: int
-    slot_footfall: int | None  # people passing during the 2-hour slot that day
-    day_footfall: int | None  # people passing the pole over that whole day
+    predicted_footfall: int | None  # forecast for the 2-hour slot (what the price was based on)
+    predicted_low: int | None  # forecast range shown to the user (usually contains the actual count)
+    predicted_high: int | None
+    actual_footfall: int | None  # measured over the whole slot; None until the slot has ended
+    slot_status: str  # upcoming | live | done
+    live_footfall: int | None  # counted so far while the slot is running
 
 
 class AdvertiserDashboard(BaseModel):

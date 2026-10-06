@@ -7,10 +7,11 @@ import { BidModal } from '@/components/auction/BidModal'
 import { PageSpinner } from '@/components/common/Spinner'
 import { AuctionTable, COLUMNS, shortDate, type Column } from '@/components/dashboard/AuctionTable'
 import { BidHistory } from '@/components/dashboard/BidHistory'
+import { SeatsWon } from '@/components/dashboard/SeatsWon'
 import { Empty, Kpi, KpiGrid, Section } from '@/components/dashboard/Kpi'
 import { usePolling } from '@/hooks/usePolling'
 import type { AdvertiserDashboardData, AuctionRow } from '@/types'
-import { footfallRange, formatINR, formatNumber } from '@/utils/format'
+import { formatINR, formatNumber } from '@/utils/format'
 import { DEFAULT_LOCATION } from '@/utils/mapDefaults'
 
 const SEAT_LABEL: Record<string, string> = {
@@ -194,34 +195,7 @@ export function AdvertiserDashboardPage() {
             {data.won.length === 0 ? (
               <Empty>No wins yet.</Empty>
             ) : (
-              <div className="-mx-4 overflow-x-auto">
-                <table className="w-full min-w-[720px] text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-left text-xs text-slate-500">
-                      <th className="px-4 py-2 font-medium">Pole</th>
-                      <th className="px-4 py-2 font-medium">Slot</th>
-                      <th className="px-4 py-2 font-medium">Seat</th>
-                      <th className="px-4 py-2 text-right font-medium">Footfall in slot</th>
-                      <th className="px-4 py-2 text-right font-medium">Footfall that day</th>
-                      <th className="px-4 py-2 text-right font-medium">Paid</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {data.won.map((w) => (
-                      <tr key={w.auction_id}>
-                        <td className="px-4 py-2 font-medium">{w.pole_code}</td>
-                        <td className="px-4 py-2">
-                          {shortDate(w.date)} <span className="text-slate-500">· {w.shift_label}</span>
-                        </td>
-                        <td className="px-4 py-2">{w.seat}</td>
-                        <td className="px-4 py-2 text-right tabular-nums">{w.slot_footfall !== null ? footfallRange(w.slot_footfall) : '—'}</td>
-                        <td className="px-4 py-2 text-right tabular-nums text-slate-600">{w.day_footfall !== null ? footfallRange(w.day_footfall) : '—'}</td>
-                        <td className="px-4 py-2 text-right tabular-nums">{formatINR(w.amount)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <SeatsWon rows={data.won} />
             )}
           </Section>
         )}

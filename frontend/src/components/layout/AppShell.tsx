@@ -59,7 +59,7 @@ export function AppShell() {
               <button
                 onClick={() => {
                   logout()
-                  navigate('/map')
+                  navigate('/login', { replace: true })
                 }}
                 className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >

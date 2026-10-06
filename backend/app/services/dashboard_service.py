@@ -223,21 +223,28 @@ def advertiser_dashboard(db: Session, user: User) -> AdvertiserDashboard:
         .order_by(InventorySlot.date.desc())
     ).all()
     profiles = slot_footfall_service.load_profiles(db, list({p.id for _, _, p in won_rows}))
-    won = [
-        WonSeat(
-            auction_id=w.auction_id,
-            pole_code=p.code,
-            date=s.date,
-            shift_label=shift_svc.get_shift(s.shift).label,
-            seat=w.seat,
-            amount=w.winning_bid,
-            slot_footfall=slot_footfall_service.shift_footfall(profiles.get(p.id), s.date, s.shift),
-            day_footfall=(
-                slot_footfall_service.day_total(profiles[p.id], s.date.weekday()) if p.id in profiles else p.footfall
-            ),
+    now = utcnow()
+    won = []
+    for w, s, p in won_rows:
+        predicted = slot_footfall_service.shift_footfall(profiles.get(p.id), s.date, s.shift)
+        status, count = slot_footfall_service.measured(predicted, p.code, s.date, s.shift, now) if predicted is not None else ("upcoming", None)
+        low, high = slot_footfall_service.forecast_range(predicted) if predicted is not None else (None, None)
+        won.append(
+            WonSeat(
+                auction_id=w.auction_id,
+                pole_code=p.code,
+                date=s.date,
+                shift_label=shift_svc.get_shift(s.shift).label,
+                seat=w.seat,
+                amount=w.winning_bid,
+                predicted_footfall=predicted,
+                predicted_low=low,
+                predicted_high=high,
+                actual_footfall=count if status == "done" else None,
+                slot_status=status,
+                live_footfall=count if status == "live" else None,
+            )
         )
-        for w, s, p in won_rows
-    ]
     open_now = db.scalar(
         select(func.count(Auction.id)).where(
             Auction.status == AuctionStatus.LIVE,

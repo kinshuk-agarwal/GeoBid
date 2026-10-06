@@ -327,10 +327,16 @@ export interface AdvertiserDashboardData {
     shift_label: string
     seat: number
     amount: number
-    /** people passing during the 2-hour slot that day */
-    slot_footfall: number | null
-    /** people passing the pole over that whole day */
-    day_footfall: number | null
+    /** forecast for the 2-hour slot (what the price was based on) */
+    predicted_footfall: number | null
+    /** forecast range shown to the user; usually contains the actual count */
+    predicted_low: number | null
+    predicted_high: number | null
+    /** measured over the whole slot; null until the slot has ended */
+    actual_footfall: number | null
+    slot_status: 'upcoming' | 'live' | 'done'
+    /** counted so far while the slot is running */
+    live_footfall: number | null
   }[]
 }
 

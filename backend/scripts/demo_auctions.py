@@ -44,12 +44,13 @@ PREMIUM_BIDS = {"LOW": [0], "LOW_MEDIUM": [0, 0, 1], "MEDIUM": [0, 1, 1, 2], "HI
 HISTORY_DAYS = 180
 # Relative purchase frequency of advertisers 1-8 (regulars buy more often).
 BUYER_WEIGHTS = [4, 3, 3, 2, 2, 2, 1, 1]
-# Live auctions (next 7 days) each demo advertiser has bid in, mostly on popular
-# evening slots of busy poles, so those show competition; most other slots a
-# week out have no bids yet.
-LIVE_AUCTIONS_PER_ADVERTISER = 30
-HOT_POLES = 6
-HOT_SHIFTS = ["S9", "S10"]
+# Live auctions (next 7 days): the chance a slot already has bids depends on
+# its demand, the pole's footfall category and how soon it runs; busy slots
+# draw 2-4 of the demo advertisers, quiet ones rarely any.
+BID_CHANCE = {"LOW": 0.0, "LOW_MEDIUM": 0.03, "MEDIUM": 0.15, "HIGH": 0.55, "VERY_HIGH": 0.8}
+CATEGORY_FACTOR = {"HIGH": 0.65, "MEDIUM": 0.1, "LOW": 0.02}
+BIDDERS = {"LOW": (1, 1), "LOW_MEDIUM": (1, 2), "MEDIUM": (1, 2), "HIGH": (2, 3), "VERY_HIGH": (2, 4)}
+RAISE_CHANCE = 0.35  # a bidder also raised their own bid
 # Kept out of all demo bidding (a first-time bidder for testing).
 FRESH_ACCOUNT = "newuser@geobid.local"
 # How often each 2-hour slot (S1-S12) sells: nights rarely, evenings most.
@@ -200,30 +201,21 @@ def seed_demo_auctions(db: Session, now: datetime | None = None, seed: int = 7) 
         if back % 30 == 0:
             db.flush()
 
-    # Every slot, the next 7 days, open for bidding. Each demo advertiser has bid
-    # in LIVE_AUCTIONS_PER_ADVERTISER of them (mostly popular evening slots of
-    # busy poles; never P014, which is scripted); the rest have no bids yet.
-    def grid(pole_list, shift_list):
-        return [
-            (pole.id, today + timedelta(days=ahead), shift)
-            for ahead in range(1, settings.inventory_days_ahead + 1)
-            for pole in pole_list
-            if pole.code != "P014"
-            for shift in shift_list
-        ]
-
-    hot, anywhere = grid(poles[:HOT_POLES], HOT_SHIFTS), grid(poles, shifts)
-    joins: dict[tuple, list[User]] = {}
-    for user in adv:
-        n_hot = round(LIVE_AUCTIONS_PER_ADVERTISER * 0.8)
-        picks = set(rng.sample(hot, n_hot))
-        while len(picks) < LIVE_AUCTIONS_PER_ADVERTISER:
-            picks.add(rng.choice(anywhere))
-        for key in picks:
-            joins.setdefault(key, []).append(user)
-
-    def plan_for(pole: Pole, day, shift: str) -> list[User]:
-        plan = list(joins.get((pole.id, day, shift), []))
+    # Every slot, the next 7 days, open for bidding. Busy slots on busy poles
+    # attract several of the demo advertisers (more as the date gets closer);
+    # quiet slots mostly have no bids yet. P014 16:00 is scripted below.
+    def plan_for(pole: Pole, day, d: str) -> list[User]:
+        ahead = (day - today).days
+        chance = BID_CHANCE[d] * CATEGORY_FACTOR[pole.category.value] * (1.05 - 0.08 * ahead)
+        if rng.random() >= chance:
+            return []
+        lo, hi = BIDDERS[d]
+        bidders: list[User] = []
+        while len(bidders) < rng.randint(lo, hi):
+            u = rng.choices(adv, weights=BUYER_WEIGHTS)[0]
+            if u not in bidders and not (pole.code == "P014" and u is a1):
+                bidders.append(u)
+        plan = bidders + [u for u in bidders if rng.random() < RAISE_CHANCE]
         rng.shuffle(plan)
         return plan
 
@@ -239,7 +231,10 @@ def seed_demo_auctions(db: Session, now: datetime | None = None, seed: int = 7) 
                 elif pole.code == "P014" and shift == "S9" and ahead == 2:
                     build_auction(db, rng, s, now, adv, d, qualifying_plan=[a2, a3, a4])
                 else:
-                    build_auction(db, rng, s, now, adv, d, qualifying_plan=plan_for(pole, day, shift), premium_plan=[])
+                    plan = plan_for(pole, day, d)
+                    # Tomorrow's slots are already in the premium round: busy ones see premium bids too.
+                    premium = None if plan and ahead == 1 and d in ("HIGH", "VERY_HIGH") else []
+                    build_auction(db, rng, s, now, adv, d, qualifying_plan=plan, premium_plan=premium)
         db.flush()
     db.commit()
 

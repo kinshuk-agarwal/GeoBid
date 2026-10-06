@@ -194,7 +194,7 @@ def test_demo_data_is_consistent_and_realistic(client, db, tmp_path, monkeypatch
     for i in range(1, 9):
         d = client.get("/api/dashboard/advertiser", headers=login(client, f"advertiser{i}@geobid.local")).json()
         spends[i] = d["kpis"]["total_spend"]
-        assert 0 < d["my_auctions_total"] <= 40 and d["kpis"]["seats_won"] < 2 * 180  # < 2 seats a day
+        assert 0 < d["my_auctions_total"] <= 200 and d["kpis"]["seats_won"] < 2 * 180  # < 2 seats a day
         measured = []
         for won in d["won"]:
             assert won["predicted_footfall"] > 0
@@ -219,4 +219,28 @@ def test_signup_then_use_the_app(client, seeded):
     again = client.post("/api/auth/register", json={"name": "Other", "email": "TEST.brand@example.com", "password": "secret123"})
     assert again.status_code == 409  # emails are unique, case-insensitively
     assert client.post("/api/auth/register", json={"name": "X", "email": "bad", "password": "short"}).status_code == 422
+
+
+def test_this_weeks_auctions_have_realistic_bidding(client, db, tmp_path, monkeypatch):
+    """Busy slots on busy poles draw several bidders; quiet slots mostly have none."""
+    from sqlalchemy import func, select
+
+    from app.models import Auction, AuctionStatus, Bid
+
+    monkeypatch.setattr(settings, "synthetic_data_dir", tmp_path)
+    seed_all(db, tmp_path, price_history=False)
+    rows = db.execute(
+        select(Pole.category, InventorySlot.shift, func.count(func.distinct(Bid.advertiser_id)))
+        .select_from(Auction)
+        .join(InventorySlot, Auction.inventory_slot_id == InventorySlot.id)
+        .join(Pole, InventorySlot.pole_id == Pole.id)
+        .outerjoin(Bid, Bid.auction_id == Auction.id)
+        .where(Auction.status == AuctionStatus.LIVE)
+        .group_by(Auction.id)
+    ).all()
+    peak = [n for cat, shift, n in rows if cat.value == "HIGH" and shift in ("S9", "S10")]
+    night = [n for cat, shift, n in rows if shift in ("S1", "S2", "S3")]
+    assert sum(1 for n in peak if n) / len(peak) > 0.2  # many peak slots on busy poles have bids
+    assert max(peak) >= 3  # with real competition
+    assert sum(1 for n in night if n) / len(night) < 0.02  # night slots barely draw bids
 
